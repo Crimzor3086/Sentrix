@@ -1,6 +1,7 @@
-import { ethers } from "hardhat";
+import * as hardhat from "hardhat";
 
 async function main() {
+  const { ethers } = hardhat;
   console.log("Deploying SentrixRegistry...");
   const registry = await ethers.deployContract("SentrixRegistry");
   await registry.waitForDeployment();

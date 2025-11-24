@@ -1,10 +1,12 @@
-require("@nomicfoundation/hardhat-ethers");
-require("dotenv").config();
+import type { HardhatUserConfig } from "hardhat/config";
+import "@nomicfoundation/hardhat-ethers";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const { MANTLE_SEPOLIA_RPC_URL, PRIVATE_KEY } = process.env;
 
-/** @type import('hardhat/config').HardhatUserConfig */
-module.exports = {
+const config: HardhatUserConfig = {
   solidity: "0.8.24",
   paths: {
     sources: "./contracts",
@@ -17,4 +19,6 @@ module.exports = {
     },
   },
 };
+
+export default config;
 

@@ -21,7 +21,24 @@ Implements a lightweight programmable license marketplace linked to the registry
 
 ## Deployment
 
-Any EVM toolchain (Hardhat, Foundry, Remix) can deploy these contracts. A minimal Foundry workflow:
+Any EVM toolchain (Hardhat, Foundry, Remix) can deploy these contracts. Two workflows are included in this repo:
+
+### Option A: Node script (default)
+
+After `npm install`, compile the contracts and deploy with the bundled script (reads RPC + key from `.env`):
+
+```bash
+npx hardhat compile
+MANTLE_SEPOLIA_RPC_URL=<https-url> \
+PRIVATE_KEY=<0x...> \
+node scripts/deploy-direct.mjs
+```
+
+The script will print the SentrixRegistry and SentrixLicensing addresses.
+
+### Option B: Foundry
+
+A minimal Foundry workflow looks like:
 
 ```bash
 forge install
