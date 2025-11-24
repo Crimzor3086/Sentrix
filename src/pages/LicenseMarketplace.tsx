@@ -2,15 +2,19 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, ShoppingCart, FileText } from "lucide-react";
+import { Search, ShoppingCart, FileText, Plus } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { type LicenseListing, useOpenLicenses } from "@/hooks/useLicenses";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getRegistryContract, getLicensingContract, formatEther } from "@/lib/contracts";
-import { mapRegistryAsset, RegistryAsset } from "@/hooks/useRegistryAssets";
+import { getRegistryContract, getLicensingContract, formatEther, parseEther } from "@/lib/contracts";
+import { mapRegistryAsset, RegistryAsset, useRegistryAssets } from "@/hooks/useRegistryAssets";
 import { useWallet } from "@/contexts/WalletContext";
+import { useState } from "react";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { ZeroAddress } from "ethers";
 
 type MarketplaceListing = {
   asset: RegistryAsset;
@@ -19,6 +23,8 @@ type MarketplaceListing = {
 
 export default function LicenseMarketplace() {
   const { isConnected } = useWallet();
+  const { data: ownedAssetsData } = useRegistryAssets();
+  const ownedAssets = ownedAssetsData ?? [];
   const queryClient = useQueryClient();
   const {
     data: openLicenses,
@@ -41,6 +47,55 @@ export default function LicenseMarketplace() {
       return enriched;
     },
   });
+
+  const [listingForm, setListingForm] = useState({
+    assetId: "",
+    fee: "",
+    terms: "",
+    licensee: "",
+  });
+
+  const { mutateAsync: publishListing, isPending: isPublishing } = useMutation({
+    mutationFn: async () => {
+      if (!listingForm.assetId) {
+        throw new Error("Select an asset to license");
+      }
+      if (!listingForm.fee) {
+        throw new Error("Set a listing fee in ETH");
+      }
+
+      const contract = await getLicensingContract();
+      const tx = await contract.createLicense(
+        BigInt(listingForm.assetId),
+        0,
+        0,
+        parseEther(listingForm.fee),
+        listingForm.terms || "",
+        listingForm.licensee || ZeroAddress
+      );
+      return tx.wait();
+    },
+    onSuccess: async () => {
+      toast.success("License listing published");
+      setListingForm({ assetId: "", fee: "", terms: "", licensee: "" });
+      await queryClient.invalidateQueries({ queryKey: ["assetLicenses"] });
+      await queryClient.invalidateQueries({ queryKey: ["openLicenses"] });
+      await queryClient.invalidateQueries({ queryKey: ["marketplaceListings"] });
+    },
+    onError: (error: unknown) => {
+      const message = error instanceof Error ? error.message : "Failed to publish license";
+      toast.error(message);
+    },
+  });
+
+  const handlePublish = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!isConnected) {
+      toast.error("Connect MetaMask to publish");
+      return;
+    }
+    await publishListing();
+  };
 
   const { mutateAsync: purchaseLicense, isPending: isPurchasing } = useMutation({
     mutationFn: async (licenseId: string) => {
@@ -78,6 +133,107 @@ export default function LicenseMarketplace() {
           <h1 className="text-4xl font-bold mb-2 gradient-text">License Marketplace</h1>
           <p className="text-muted-foreground">Browse and purchase IP licenses from creators</p>
         </div>
+
+        {isConnected && (
+          <Card className="glass-card p-6 mb-8">
+            <div className="flex flex-col gap-6">
+              <div className="flex items-center justify-between flex-wrap gap-4">
+                <div>
+                  <p className="text-sm uppercase tracking-wide text-muted-foreground">List your IP</p>
+                  <h2 className="text-2xl font-bold">Publish a New License</h2>
+                </div>
+                <p className="text-sm text-muted-foreground max-w-sm">
+                  Buyers pay the fee upfront when they accept your terms. All listings settle on Mantle Sepolia.
+                </p>
+              </div>
+
+              <form onSubmit={handlePublish} className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label>IP Asset</Label>
+                  {ownedAssets.length > 0 ? (
+                    <Select
+                      value={listingForm.assetId}
+                      onValueChange={(value) => setListingForm((prev) => ({ ...prev, assetId: value }))}
+                    >
+                      <SelectTrigger className="glass border-border">
+                        <SelectValue placeholder="Select registered asset" />
+                      </SelectTrigger>
+                      <SelectContent className="glass-card border-glass-border">
+                        {ownedAssets.map((asset) => (
+                          <SelectItem key={asset.id} value={asset.id}>
+                            #{asset.id} · {asset.title}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Input
+                      placeholder="Enter asset ID"
+                      value={listingForm.assetId}
+                      onChange={(event) => setListingForm((prev) => ({ ...prev, assetId: event.target.value }))}
+                      className="glass border-border"
+                    />
+                  )}
+                  {ownedAssets.length === 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      Mint an IP token on the{" "}
+                      <a href="/ip/register" className="underline hover:text-primary">
+                        Register IP
+                      </a>{" "}
+                      page first, then paste its ID here.
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Listing Fee (ETH)</Label>
+                  <Input
+                    type="number"
+                    step="0.0001"
+                    placeholder="0.00"
+                    value={listingForm.fee}
+                    onChange={(event) => setListingForm((prev) => ({ ...prev, fee: event.target.value }))}
+                    className="glass border-border"
+                  />
+                </div>
+
+                <div className="space-y-2 md:col-span-2">
+                  <Label>License Terms (URI or summary)</Label>
+                  <Textarea
+                    placeholder="ipfs://cid or brief summary of the license terms..."
+                    value={listingForm.terms}
+                    onChange={(event) => setListingForm((prev) => ({ ...prev, terms: event.target.value }))}
+                    className="glass border-border min-h-[100px]"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Paste an IPFS/HTTPS link for the full agreement or add a short description (stored on-chain).
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Directed Licensee (optional)</Label>
+                  <Input
+                    placeholder="0x000... (leave blank for open listing)"
+                    value={listingForm.licensee}
+                    onChange={(event) => setListingForm((prev) => ({ ...prev, licensee: event.target.value }))}
+                    className="glass border-border"
+                  />
+                </div>
+
+                <div className="flex items-end">
+                  <Button
+                    type="submit"
+                    className="bg-gradient-primary hover:opacity-90 glow-purple w-full"
+                    disabled={isPublishing}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    {isPublishing ? "Publishing..." : "Publish Listing"}
+                  </Button>
+                </div>
+              </form>
+            </div>
+          </Card>
+        )}
 
         {/* Filters */}
         <Card className="glass-card p-6 mb-8">
