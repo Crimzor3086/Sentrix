@@ -14,12 +14,29 @@ const getProvider = async () => {
   return { provider, signer };
 };
 
-const getAddress = (key: "VITE_SENTRIX_REGISTRY_ADDRESS" | "VITE_SENTRIX_LICENSING_ADDRESS") => {
+const DEFAULT_CONTRACT_ADDRESSES = {
+  VITE_SENTRIX_REGISTRY_ADDRESS: "0xD65143F3861d7fc09514c4e5bDA0264Bd4EE2EF1",
+  VITE_SENTRIX_LICENSING_ADDRESS: "0x98E066d8Fe0dCcA41005EB2f3E45179cEbE9FC2C",
+} as const;
+
+const getAddress = (key: keyof typeof DEFAULT_CONTRACT_ADDRESSES) => {
   const value = import.meta.env[key];
-  if (!value) {
-    throw new Error(`${key} is not configured in your environment`);
+  if (value && value !== "") {
+    return value;
   }
-  return value;
+
+  const fallback = DEFAULT_CONTRACT_ADDRESSES[key];
+  if (fallback) {
+    if (import.meta.env.MODE !== "production") {
+      console.warn(
+        `[sentrix] ${key} missing in env, falling back to Mantle Sepolia default (${fallback}).` +
+          " Configure real addresses in your .env to silence this warning."
+      );
+    }
+    return fallback;
+  }
+
+  throw new Error(`${key} is not configured in your environment`);
 };
 
 export const getRegistryContract = async () => {

@@ -127,7 +127,7 @@ export default function LicenseMarketplace() {
           <Card className="glass-card p-12 text-center space-y-4">
             <h3 className="text-2xl font-bold">Unable to load licenses</h3>
             <p className="text-muted-foreground">
-              Confirm the licensing contract address is deployed on the current network.
+              Connect MetaMask to Mantle Sepolia and confirm the Sentrix licensing contract address is configured.
             </p>
             <Button className="bg-gradient-primary" onClick={() => refetch()}>
               Retry

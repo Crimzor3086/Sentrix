@@ -65,7 +65,7 @@ const IPAssetsContent = () => {
       <Card className="glass-card p-12 text-center space-y-4">
         <h2 className="text-2xl font-bold">Unable to load assets</h2>
         <p className="text-muted-foreground">
-          Double-check that the Sentrix contracts are deployed on the network your wallet is connected to.
+          Make sure your wallet is connected to Mantle Sepolia and that the Sentrix contract addresses are configured.
         </p>
         <Button onClick={() => refetch()} className="bg-gradient-primary hover:opacity-90">
           Retry
