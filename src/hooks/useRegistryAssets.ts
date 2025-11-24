@@ -14,7 +14,7 @@ export type RegistryAsset = {
   reference?: string;
 };
 
-const mapAsset = (raw: any): RegistryAsset => {
+export const mapRegistryAsset = (raw: any): RegistryAsset => {
   const metadata = decodeMetadataURI(raw.metadataURI ?? raw[4] ?? "");
 
   return {
@@ -38,7 +38,7 @@ export const useRegistryAssets = () => {
     queryFn: async () => {
       const contract = await getRegistryContract();
       const assets = await contract.getAssetsByOwner(address);
-      return assets.map(mapAsset);
+      return assets.map(mapRegistryAsset);
     },
   });
 };
@@ -50,7 +50,7 @@ export const useRegistryAsset = (assetId?: string) => {
     queryFn: async () => {
       const contract = await getRegistryContract();
       const asset = await contract.getAsset(assetId);
-      return mapAsset(asset);
+      return mapRegistryAsset(asset);
     },
   });
 };

@@ -36,6 +36,17 @@ npm i
 npm run dev
 ```
 
+### Configure contract addresses
+
+Deploy `SentrixRegistry` and `SentrixLicensing` (see `contracts/README.md`) and copy the addresses into a local `.env` file:
+
+```
+VITE_SENTRIX_REGISTRY_ADDRESS=0xRegistryAddress
+VITE_SENTRIX_LICENSING_ADDRESS=0xLicensingAddress
+```
+
+Restart `npm run dev` after changing env vars so the wallet + marketplace views use the new contracts.
+
 **Edit a file directly in GitHub**
 
 - Navigate to the desired file(s).

@@ -4,23 +4,94 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { CheckCircle2, ArrowLeft } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useNavigate, useParams } from "react-router-dom";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { getLicensingContract, parseEther } from "@/lib/contracts";
+import { useWallet } from "@/contexts/WalletContext";
+import { ZeroAddress } from "ethers";
 
 export default function CreateLicense() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { isConnected } = useWallet();
   const [commercialUse, setCommercialUse] = useState(false);
   const [exclusive, setExclusive] = useState(false);
+  const [formState, setFormState] = useState({
+    name: "",
+    territory: "",
+    duration: "",
+    licensee: "",
+    startDate: "",
+    endDate: "",
+    fee: "",
+    terms: "",
+  });
+
+  const encodeTerms = (value: string) => {
+    if (!value) return "";
+    if (value.startsWith("ipfs://") || value.startsWith("https://") || value.startsWith("http://")) {
+      return value;
+    }
+    const payload = typeof window !== "undefined"
+      ? window.btoa(unescape(encodeURIComponent(value)))
+      : Buffer.from(value, "utf-8").toString("base64");
+    return `data:text/plain;base64,${payload}`;
+  };
+
+  const { mutateAsync, isPending } = useMutation({
+    mutationFn: async () => {
+      if (!id) {
+        throw new Error("Missing asset id");
+      }
+      if (!formState.fee) {
+        throw new Error("Set a license fee");
+      }
+
+      const contract = await getLicensingContract();
+      const start = formState.startDate ? Math.floor(new Date(formState.startDate).getTime() / 1000) : Math.floor(Date.now() / 1000);
+      const end = formState.endDate ? Math.floor(new Date(formState.endDate).getTime() / 1000) : 0;
+      const termsURI = encodeTerms(
+        formState.terms ||
+          `${formState.name || "Sentrix License"} | territory=${formState.territory || "worldwide"} | duration=${
+            formState.duration || "perpetual"
+          } | commercial=${commercialUse} | exclusive=${exclusive}`
+      );
+
+      const tx = await contract.createLicense(
+        BigInt(id),
+        start,
+        end,
+        parseEther(formState.fee),
+        termsURI,
+        formState.licensee || ZeroAddress
+      );
+
+      return tx.wait();
+    },
+    onSuccess: async () => {
+      toast.success("License published on-chain");
+      await queryClient.invalidateQueries({ queryKey: ["assetLicenses", id] });
+      await queryClient.invalidateQueries({ queryKey: ["openLicenses"] });
+      navigate(`/ip/${id}`);
+    },
+    onError: (error: unknown) => {
+      const message = error instanceof Error ? error.message : "Failed to publish license";
+      toast.error(message);
+    },
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast.success("License created successfully!");
-    setTimeout(() => {
-      navigate(`/ip/${id}`);
-    }, 1000);
+    if (!isConnected) {
+      toast.error("Connect your wallet first");
+      return;
+    }
+    await mutateAsync();
   };
 
   return (
@@ -51,6 +122,8 @@ export default function CreateLicense() {
                     id="name" 
                     placeholder="e.g., Commercial Use License" 
                     className="glass border-border"
+                    value={formState.name}
+                    onChange={(event) => setFormState((prev) => ({ ...prev, name: event.target.value }))}
                     required
                   />
                 </div>
@@ -73,7 +146,11 @@ export default function CreateLicense() {
 
                 <div className="space-y-2">
                   <Label htmlFor="territory">Territory</Label>
-                  <Select required>
+                  <Select
+                    required
+                    value={formState.territory}
+                    onValueChange={(value) => setFormState((prev) => ({ ...prev, territory: value }))}
+                  >
                     <SelectTrigger className="glass border-border">
                       <SelectValue placeholder="Select territory" />
                     </SelectTrigger>
@@ -89,7 +166,11 @@ export default function CreateLicense() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="duration">Duration</Label>
-                    <Select required>
+                    <Select
+                      required
+                      value={formState.duration}
+                      onValueChange={(value) => setFormState((prev) => ({ ...prev, duration: value }))}
+                    >
                       <SelectTrigger className="glass border-border">
                         <SelectValue placeholder="Select duration" />
                       </SelectTrigger>
@@ -103,15 +184,66 @@ export default function CreateLicense() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="price">Price (USD)</Label>
+                    <Label htmlFor="price">Price (ETH)</Label>
                     <Input 
-                      id="price" 
-                      type="number" 
-                      placeholder="0.00" 
+                      id="price"
+                      type="number"
+                      step="0.0001"
+                      placeholder="0.00"
                       className="glass border-border"
+                      value={formState.fee}
+                      onChange={(event) => setFormState((prev) => ({ ...prev, fee: event.target.value }))}
                       required
                     />
                   </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="start-date">Start Date</Label>
+                    <Input
+                      id="start-date"
+                      type="date"
+                      className="glass border-border"
+                      value={formState.startDate}
+                      onChange={(event) => setFormState((prev) => ({ ...prev, startDate: event.target.value }))}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="end-date">End Date</Label>
+                    <Input
+                      id="end-date"
+                      type="date"
+                      className="glass border-border"
+                      value={formState.endDate}
+                      onChange={(event) => setFormState((prev) => ({ ...prev, endDate: event.target.value }))}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="licensee">Licensee (optional)</Label>
+                  <Input
+                    id="licensee"
+                    placeholder="0x..."
+                    className="glass border-border"
+                    value={formState.licensee}
+                    onChange={(event) => setFormState((prev) => ({ ...prev, licensee: event.target.value }))}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Leave blank to create an open listing anyone can accept.
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="terms">Terms / Notes</Label>
+                  <Textarea
+                    id="terms"
+                    placeholder="Describe the rights, restrictions, and any off-chain references..."
+                    className="glass border-border min-h-[120px]"
+                    value={formState.terms}
+                    onChange={(event) => setFormState((prev) => ({ ...prev, terms: event.target.value }))}
+                  />
                 </div>
 
                 <div className="flex gap-4 pt-4">
@@ -126,8 +258,9 @@ export default function CreateLicense() {
                   <Button 
                     type="submit" 
                     className="bg-gradient-primary hover:opacity-90 glow-purple flex-1"
+                    disabled={isPending}
                   >
-                    Publish License
+                    {isPending ? "Publishing..." : "Publish License"}
                   </Button>
                 </div>
               </form>
@@ -153,6 +286,12 @@ export default function CreateLicense() {
                     <span className="text-muted-foreground">Status</span>
                     <span className="font-medium text-accent">Ready to Publish</span>
                   </div>
+                  <div className="flex justify-between py-2 border-t border-border">
+                    <span className="text-muted-foreground">Listing type</span>
+                    <span className="font-medium">
+                      {formState.licensee ? "Directed" : "Open"}
+                    </span>
+                  </div>
                 </div>
               </Card>
 
@@ -170,6 +309,10 @@ export default function CreateLicense() {
                   <li className="flex gap-2">
                     <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
                     <span>Transparent revenue tracking</span>
+                  </li>
+                  <li className="flex gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                    <span>License terms embedded as on-chain metadata</span>
                   </li>
                 </ul>
               </Card>
