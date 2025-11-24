@@ -140,7 +140,7 @@ export async function analyticsRoutes(fastify: FastifyInstance) {
 
   /**
    * GET /analytics/revenue
-   * Get revenue analytics (placeholder - requires payment integration)
+   * Get revenue analytics
    */
   fastify.get(
     '/revenue',
@@ -162,7 +162,6 @@ export async function analyticsRoutes(fastify: FastifyInstance) {
         const startDate = new Date();
         startDate.setDate(startDate.getDate() - days);
 
-        // Count active licenses (revenue proxy)
         const activeLicenses = await prisma.license.count({
           where: {
             status: 'active',
@@ -172,14 +171,34 @@ export async function analyticsRoutes(fastify: FastifyInstance) {
           },
         });
 
-        // TODO: Calculate actual revenue from license purchases
-        // This would require tracking payment transactions
+        // Calculate revenue from license terms (price field)
+        // Note: This assumes license terms include a 'price' field in wei or token amount
+        const licensesWithPrice = await prisma.license.findMany({
+          where: {
+            status: 'active',
+            createdAt: {
+              gte: startDate,
+            },
+          },
+          select: {
+            termsJson: true,
+          },
+        });
+
+        let totalRevenue = 0;
+        for (const license of licensesWithPrice) {
+          const terms = license.termsJson as any;
+          if (terms?.price) {
+            // Convert from wei to ETH (or handle token decimals)
+            totalRevenue += Number(terms.price) / 1e18;
+          }
+        }
 
         return {
           period: `${days} days`,
           activeLicenses,
-          estimatedRevenue: activeLicenses * 0, // Placeholder
-          message: 'Revenue tracking requires payment integration',
+          totalRevenue: totalRevenue.toFixed(4),
+          currency: 'ETH',
         };
       } catch (error: any) {
         return reply.status(500).send({

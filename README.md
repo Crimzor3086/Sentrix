@@ -227,7 +227,7 @@ See [backend/README.md](./backend/README.md) for deployment options including Do
 
 ## 🚨 Important Notes
 
-1. **Story Protocol SDK**: Backend includes placeholder functions. Integrate actual SDK when available.
+1. **Story Protocol SDK**: Backend functions will throw errors until Story Protocol SDK is integrated. See `backend/src/utils/story.ts` for implementation details.
 2. **Environment Variables**: Never commit `.env` files. Use `.env.example` as template.
 3. **Security**: Use strong secrets in production, enable HTTPS.
 4. **CORS**: Configure `FRONTEND_URL` in backend `.env` to match your frontend domain.

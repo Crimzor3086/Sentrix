@@ -41,11 +41,15 @@ export async function createLicenseForIP(input: CreateLicenseInput) {
     throw new Error('Only the IP creator can create licenses');
   }
 
-  // Create license on Story Protocol
+  // Upload license terms to IPFS
+  const termsHash = await uploadMetadata(terms);
+
+  // Create license on-chain
   const { licenseId, txHash } = await createLicense(
     ipAsset.storyIpId || ipId,
     terms,
-    creatorWallet.toLowerCase() as Address
+    creatorWallet.toLowerCase() as Address,
+    termsHash
   );
 
   // Save to database

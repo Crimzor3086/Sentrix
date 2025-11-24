@@ -21,33 +21,62 @@ interface ScanResult {
   issueType?: string;
 }
 
-const mockResults: ScanResult[] = [
-  { id: "1", fileName: "ai_generated_image_001.png", status: "safe", confidence: 98 },
-  { id: "2", fileName: "text_output_marketing.txt", status: "warning", confidence: 72, issueType: "License Required" },
-  { id: "3", fileName: "logo_design_v2.svg", status: "blocked", confidence: 95, issueType: "Copyright" },
-  { id: "4", fileName: "product_description.md", status: "safe", confidence: 91 },
-];
-
 export default function Scan() {
   const [isScanning, setIsScanning] = useState(false);
   const [progress, setProgress] = useState(0);
   const [results, setResults] = useState<ScanResult[]>([]);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
 
-  const handleScan = () => {
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setUploadedFile(file);
+    }
+  };
+
+  const handleScan = async () => {
+    if (!uploadedFile) {
+      return;
+    }
+
     setIsScanning(true);
     setProgress(0);
     
-    const interval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setIsScanning(false);
-          setResults(mockResults);
-          return 100;
-        }
-        return prev + 10;
-      });
-    }, 200);
+    try {
+      const formData = new FormData();
+      formData.append('file', uploadedFile);
+      formData.append('ipId', ''); // Will be set when IP is selected
+
+      // Simulate progress
+      const progressInterval = setInterval(() => {
+        setProgress((prev) => {
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            return 90;
+          }
+          return prev + 10;
+        });
+      }, 200);
+
+      // TODO: Replace with actual API call to /report/submit
+      // const response = await fetch('http://localhost:3001/report/submit', {
+      //   method: 'POST',
+      //   headers: {
+      //     'Authorization': `Bearer ${token}`,
+      //   },
+      //   body: formData,
+      // });
+      // const data = await response.json();
+      
+      // For now, show empty results until API is integrated
+      setProgress(100);
+      setIsScanning(false);
+      setResults([]);
+    } catch (error) {
+      console.error('Scan error:', error);
+      setIsScanning(false);
+      setProgress(0);
+    }
   };
 
   const getStatusIcon = (status: string) => {
@@ -92,15 +121,34 @@ export default function Scan() {
           <CardTitle>Upload Files</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="border-2 border-dashed border-border rounded-lg p-12 text-center hover:border-primary/50 transition-colors cursor-pointer">
+          <div className="border-2 border-dashed border-border rounded-lg p-12 text-center hover:border-primary/50 transition-colors">
             <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
             <p className="text-lg font-medium mb-2">Drop files here or click to browse</p>
             <p className="text-sm text-muted-foreground mb-4">
               Supports images, text, documents, and more
             </p>
-            <Button onClick={handleScan} disabled={isScanning}>
-              {isScanning ? "Scanning..." : "Start Scan"}
-            </Button>
+            <input
+              type="file"
+              id="file-upload"
+              className="hidden"
+              onChange={handleFileSelect}
+              accept="image/*,text/*,.pdf,.doc,.docx"
+            />
+            <label htmlFor="file-upload">
+              <Button as="span" variant="outline" className="mr-2">
+                Select File
+              </Button>
+            </label>
+            {uploadedFile && (
+              <div className="mt-4">
+                <p className="text-sm text-muted-foreground mb-2">
+                  Selected: {uploadedFile.name}
+                </p>
+                <Button onClick={handleScan} disabled={isScanning}>
+                  {isScanning ? "Scanning..." : "Start Scan"}
+                </Button>
+              </div>
+            )}
           </div>
 
           {isScanning && (

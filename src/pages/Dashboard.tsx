@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { MetricCard } from "@/components/dashboard/MetricCard";
 import { ShieldCheck, AlertTriangle, FileText, Clock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,32 +18,62 @@ import {
   Legend
 } from "recharts";
 
-const scanActivityData = [
-  { month: "Jan", scans: 120 },
-  { month: "Feb", scans: 180 },
-  { month: "Mar", scans: 150 },
-  { month: "Apr", scans: 220 },
-  { month: "May", scans: 280 },
-  { month: "Jun", scans: 350 },
-];
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
-const violationData = [
-  { name: "Copyright", value: 35, color: "hsl(var(--neon-orange))" },
-  { name: "Trademark", value: 25, color: "hsl(var(--neon-blue))" },
-  { name: "License", value: 20, color: "hsl(var(--neon-cyan))" },
-  { name: "Other", value: 20, color: "hsl(var(--muted-foreground))" },
-];
-
-const riskTrendData = [
-  { week: "W1", risk: 65 },
-  { week: "W2", risk: 72 },
-  { week: "W3", risk: 58 },
-  { week: "W4", risk: 45 },
-  { week: "W5", risk: 38 },
-  { week: "W6", risk: 42 },
-];
+interface DashboardData {
+  totalScans: number;
+  safeOutputs: number;
+  violationsDetected: number;
+  pendingLicenses: number;
+  scanActivity: Array<{ month: string; scans: number }>;
+  violations: Array<{ name: string; value: number; color: string }>;
+  riskTrend: Array<{ week: string; risk: number }>;
+}
 
 export default function Dashboard() {
+  const [data, setData] = useState<DashboardData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        // TODO: Replace with actual API endpoints
+        // const [ipData, licenseData, reportData] = await Promise.all([
+        //   fetch(`${API_BASE_URL}/analytics/ip/created`).then(r => r.json()),
+        //   fetch(`${API_BASE_URL}/analytics/licenses/sold`).then(r => r.json()),
+        //   fetch(`${API_BASE_URL}/analytics/reports`).then(r => r.json()),
+        // ]);
+
+        // For now, show empty state until API is integrated
+        setData({
+          totalScans: 0,
+          safeOutputs: 0,
+          violationsDetected: 0,
+          pendingLicenses: 0,
+          scanActivity: [],
+          violations: [],
+          riskTrend: [],
+        });
+      } catch (error) {
+        console.error('Failed to fetch dashboard data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="space-y-6 animate-fade-in">
+        <div>
+          <h1 className="text-3xl font-display font-bold mb-2">Dashboard</h1>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="space-y-6 animate-fade-in">
       <div>
@@ -55,30 +86,26 @@ export default function Dashboard() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <MetricCard
           title="Total Scans"
-          value="1,284"
+          value={data?.totalScans.toLocaleString() || "0"}
           icon={FileText}
-          trend={{ value: "+12.5% from last month", positive: true }}
           variant="primary"
         />
         <MetricCard
           title="Safe Outputs"
-          value="1,127"
+          value={data?.safeOutputs.toLocaleString() || "0"}
           icon={ShieldCheck}
-          trend={{ value: "+8.2% from last month", positive: true }}
           variant="secondary"
         />
         <MetricCard
           title="Violations Detected"
-          value="157"
+          value={data?.violationsDetected.toLocaleString() || "0"}
           icon={AlertTriangle}
-          trend={{ value: "-3.1% from last month", positive: true }}
           variant="accent"
         />
         <MetricCard
           title="Pending Licenses"
-          value="23"
+          value={data?.pendingLicenses.toLocaleString() || "0"}
           icon={Clock}
-          trend={{ value: "+2 new this week", positive: false }}
         />
       </div>
 
@@ -89,7 +116,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={scanActivityData}>
+              <LineChart data={data?.scanActivity || []}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis 
                   dataKey="month" 
@@ -128,7 +155,7 @@ export default function Dashboard() {
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
-                  data={violationData}
+                  data={data?.violations || []}
                   cx="50%"
                   cy="50%"
                   innerRadius={60}
@@ -136,7 +163,7 @@ export default function Dashboard() {
                   paddingAngle={2}
                   dataKey="value"
                 >
-                  {violationData.map((entry, index) => (
+                  {(data?.violations || []).map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
@@ -164,7 +191,7 @@ export default function Dashboard() {
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
-            <AreaChart data={riskTrendData}>
+            <AreaChart data={data?.riskTrend || []}>
               <defs>
                 <linearGradient id="riskGradient" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="hsl(var(--accent))" stopOpacity={0.3}/>

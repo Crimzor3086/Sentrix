@@ -1,8 +1,17 @@
 import { prisma } from '../../config/database.js';
-import { createPublicClient, http, type Address } from 'viem';
+import { createPublicClient, http, type Address, parseAbi, decodeEventLog } from 'viem';
 import env from '../../config/env.js';
 
-// Story Protocol event signatures (example - adjust based on actual contracts)
+// Contract ABIs for event decoding
+const IP_ASSET_REGISTRY_ABI = parseAbi([
+  'event IPRegistered(uint256 indexed ipId, address indexed creator, string ipfsHash, string metadataHash, uint256 timestamp)',
+]);
+
+const LICENSING_MODULE_ABI = parseAbi([
+  'event LicenseCreated(uint256 indexed licenseId, uint256 indexed ipId, address indexed creator, string termsHash, uint256 price, bool commercialRights, bool distributionRights, bool exclusivity, uint256 expiresAt)',
+  'event LicensePurchased(uint256 indexed licenseId, address indexed buyer, string certificateHash, uint256 timestamp)',
+]);
+
 const IP_REGISTERED_EVENT = 'IPRegistered';
 const LICENSE_CREATED_EVENT = 'LicenseCreated';
 const LICENSE_PURCHASED_EVENT = 'LicensePurchased';
@@ -46,23 +55,91 @@ export async function syncStoryEvents(fromBlock?: bigint, toBlock?: bigint) {
     return { synced: 0, message: 'No new blocks to sync' };
   }
 
-  // TODO: Replace with actual Story Protocol contract event logs
-  // This is a placeholder structure
-  // In production, you would:
-  // 1. Get event logs from Story Protocol contracts
-  // 2. Parse events (IPRegistered, LicenseCreated, LicensePurchased)
-  // 3. Store in database
-
-  // Example structure:
-  // const logs = await client.getLogs({
-  //   address: env.STORY_IP_ASSET_REGISTRY_ADDRESS as Address,
-  //   event: ipRegisteredEventAbi,
-  //   fromBlock: startBlock,
-  //   toBlock: endBlock,
-  // });
-
-  // For now, we'll create a mock sync that demonstrates the structure
+  // Get event logs from deployed contracts
   const events: any[] = [];
+  
+  try {
+    if (!env.STORY_IP_ASSET_REGISTRY_ADDRESS || !env.STORY_LICENSING_MODULE_ADDRESS) {
+      throw new Error('Contract addresses not configured');
+    }
+
+    // Get IP Registered events
+    const ipRegisteredLogs = await client.getLogs({
+      address: env.STORY_IP_ASSET_REGISTRY_ADDRESS as Address,
+      event: IP_ASSET_REGISTRY_ABI[0],
+      fromBlock: startBlock,
+      toBlock: endBlock,
+    });
+    
+    // Get License Created events
+    const licenseCreatedLogs = await client.getLogs({
+      address: env.STORY_LICENSING_MODULE_ADDRESS as Address,
+      event: LICENSING_MODULE_ABI[0],
+      fromBlock: startBlock,
+      toBlock: endBlock,
+    });
+
+    // Get License Purchased events
+    const licensePurchasedLogs = await client.getLogs({
+      address: env.STORY_LICENSING_MODULE_ADDRESS as Address,
+      event: LICENSING_MODULE_ABI[1],
+      fromBlock: startBlock,
+      toBlock: endBlock,
+    });
+    
+    // Parse and transform logs into events array
+    for (const log of ipRegisteredLogs) {
+      const decoded = decodeEventLog({
+        abi: IP_ASSET_REGISTRY_ABI,
+        data: log.data,
+        topics: log.topics,
+      });
+      events.push({
+        type: IP_REGISTERED_EVENT,
+        blockNumber: Number(log.blockNumber),
+        transactionHash: log.transactionHash,
+        ipId: (decoded.args as any).ipId.toString(),
+        walletAddress: (decoded.args as any).creator,
+        data: decoded.args,
+      });
+    }
+
+    for (const log of licenseCreatedLogs) {
+      const decoded = decodeEventLog({
+        abi: LICENSING_MODULE_ABI,
+        data: log.data,
+        topics: log.topics,
+      });
+      events.push({
+        type: LICENSE_CREATED_EVENT,
+        blockNumber: Number(log.blockNumber),
+        transactionHash: log.transactionHash,
+        licenseId: (decoded.args as any).licenseId.toString(),
+        ipId: (decoded.args as any).ipId.toString(),
+        walletAddress: (decoded.args as any).creator,
+        data: decoded.args,
+      });
+    }
+
+    for (const log of licensePurchasedLogs) {
+      const decoded = decodeEventLog({
+        abi: LICENSING_MODULE_ABI,
+        data: log.data,
+        topics: log.topics,
+      });
+      events.push({
+        type: LICENSE_PURCHASED_EVENT,
+        blockNumber: Number(log.blockNumber),
+        transactionHash: log.transactionHash,
+        licenseId: (decoded.args as any).licenseId.toString(),
+        walletAddress: (decoded.args as any).buyer,
+        data: decoded.args,
+      });
+    }
+  } catch (error) {
+    console.error('Error fetching contract events:', error);
+    throw new Error('Failed to fetch contract events. Ensure contract addresses are configured and contracts are deployed.');
+  }
 
   // Process and store events
   let synced = 0;

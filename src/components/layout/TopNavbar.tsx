@@ -1,8 +1,8 @@
-import { Bell, Search } from "lucide-react";
+import { Bell, Search, ScanLine } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { WalletButton } from "@/components/wallet/WalletButton";
 
 export function TopNavbar() {
   return (
@@ -30,14 +30,8 @@ export function TopNavbar() {
           <span className="absolute top-1 right-1 h-2 w-2 bg-accent rounded-full" />
         </Button>
 
-        <Avatar className="h-8 w-8">
-          <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-            AD
-          </AvatarFallback>
-        </Avatar>
+        <WalletButton />
       </div>
     </header>
   );
 }
-
-import { ScanLine } from "lucide-react";

@@ -155,7 +155,7 @@ IPAsset 1:N Report
 
 ### Story Protocol
 - **Purpose**: On-chain IP registration and licensing
-- **Integration**: viem + Story Protocol SDK (placeholder)
+- **Integration**: viem + Story Protocol SDK (requires implementation)
 - **Events**: IPRegistered, LicenseCreated, LicensePurchased
 
 ### Pinata / IPFS
@@ -191,7 +191,7 @@ IPAsset 1:N Report
 ### Analytics
 - IP creation metrics
 - License sales tracking
-- Revenue analytics (placeholder)
+- Revenue analytics (calculated from license prices)
 
 ## 🔮 Future Enhancements
 

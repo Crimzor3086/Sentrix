@@ -266,7 +266,7 @@ npm run prisma:migrate deploy
 
 ## 🚨 Important Notes
 
-1. **Story Protocol SDK**: The current implementation includes placeholder functions for Story Protocol integration. You'll need to integrate with the actual Story Protocol SDK when available.
+1. **Story Protocol SDK**: The Story Protocol functions in `src/utils/story.ts` will throw errors until the SDK is integrated. Replace the error throws with actual Story Protocol SDK calls.
 
 2. **IPFS Upload**: Currently uses Pinata. You can switch to other IPFS providers by modifying `src/utils/ipfs.ts`.
 
