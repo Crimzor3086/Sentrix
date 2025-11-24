@@ -1,10 +1,23 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 
 interface WalletContextType {
   isConnected: boolean;
   address: string | null;
   connect: () => Promise<void>;
   disconnect: () => void;
+}
+
+type EthereumProvider = {
+  isMetaMask?: boolean;
+  request: <T = unknown>(args: { method: string; params?: unknown[] }) => Promise<T>;
+  on?: (event: string, listener: (...args: unknown[]) => void) => void;
+  removeListener?: (event: string, listener: (...args: unknown[]) => void) => void;
+};
+
+declare global {
+  interface Window {
+    ethereum?: EthereumProvider;
+  }
 }
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
@@ -14,9 +27,17 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
   const [address, setAddress] = useState<string | null>(null);
 
   const connect = async () => {
-    // Placeholder wallet connection - in production, integrate with actual wallet provider
-    const mockAddress = `0x${Math.random().toString(16).substring(2, 42)}`;
-    setAddress(mockAddress);
+    const provider = window.ethereum;
+    if (!provider || !provider.isMetaMask) {
+      throw new Error('MetaMask is not available');
+    }
+
+    const accounts = await provider.request<string[]>({ method: 'eth_requestAccounts' });
+    if (!accounts || accounts.length === 0) {
+      throw new Error('No accounts returned from MetaMask');
+    }
+
+    setAddress(accounts[0]);
     setIsConnected(true);
   };
 
@@ -24,6 +45,45 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
     setAddress(null);
     setIsConnected(false);
   };
+
+  useEffect(() => {
+    const provider = window.ethereum;
+    if (!provider) {
+      return;
+    }
+
+    const handleAccountsChanged = (accounts: string[]) => {
+      if (accounts.length === 0) {
+        disconnect();
+        return;
+      }
+      setAddress(accounts[0]);
+      setIsConnected(true);
+    };
+
+    const handleDisconnect = () => {
+      disconnect();
+    };
+
+    provider.request<string[]>({ method: 'eth_accounts' })
+      .then((accounts) => {
+        if (accounts && accounts.length > 0) {
+          setAddress(accounts[0]);
+          setIsConnected(true);
+        }
+      })
+      .catch(() => {
+        // swallow initialization errors; the connect flow will surface issues
+      });
+
+    provider.on?.('accountsChanged', handleAccountsChanged);
+    provider.on?.('disconnect', handleDisconnect);
+
+    return () => {
+      provider.removeListener?.('accountsChanged', handleAccountsChanged);
+      provider.removeListener?.('disconnect', handleDisconnect);
+    };
+  }, []);
 
   return (
     <WalletContext.Provider value={{ isConnected, address, connect, disconnect }}>
