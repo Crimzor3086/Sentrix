@@ -13,6 +13,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { getLicensingContract, parseEther } from "@/lib/contracts";
 import { useWallet } from "@/contexts/WalletContext";
 import { ZeroAddress } from "ethers";
+import { persistLicenseTerms } from "@/lib/ipfs";
 
 export default function CreateLicense() {
   const { id } = useParams();
@@ -32,17 +33,6 @@ export default function CreateLicense() {
     terms: "",
   });
 
-  const encodeTerms = (value: string) => {
-    if (!value) return "";
-    if (value.startsWith("ipfs://") || value.startsWith("https://") || value.startsWith("http://")) {
-      return value;
-    }
-    const payload = typeof window !== "undefined"
-      ? window.btoa(unescape(encodeURIComponent(value)))
-      : Buffer.from(value, "utf-8").toString("base64");
-    return `data:text/plain;base64,${payload}`;
-  };
-
   const { mutateAsync, isPending } = useMutation({
     mutationFn: async () => {
       if (!id) {
@@ -55,12 +45,24 @@ export default function CreateLicense() {
       const contract = await getLicensingContract();
       const start = formState.startDate ? Math.floor(new Date(formState.startDate).getTime() / 1000) : Math.floor(Date.now() / 1000);
       const end = formState.endDate ? Math.floor(new Date(formState.endDate).getTime() / 1000) : 0;
-      const termsURI = encodeTerms(
-        formState.terms ||
-          `${formState.name || "Sentrix License"} | territory=${formState.territory || "worldwide"} | duration=${
-            formState.duration || "perpetual"
-          } | commercial=${commercialUse} | exclusive=${exclusive}`
-      );
+      const termsMetadata = {
+        name: formState.name,
+        assetId: id,
+        territory: formState.territory,
+        duration: formState.duration,
+        commercialUse,
+        exclusive,
+        feeEth: formState.fee,
+        licensee: formState.licensee || null,
+        startDate: formState.startDate || null,
+        endDate: formState.endDate || null,
+        notes: formState.terms,
+        createdAt: new Date().toISOString(),
+        network: "mantle-sepolia",
+        source: "create-license-form",
+      };
+
+      const termsURI = await persistLicenseTerms(termsMetadata);
 
       const tx = await contract.createLicense(
         BigInt(id),
@@ -244,6 +246,10 @@ export default function CreateLicense() {
                     value={formState.terms}
                     onChange={(event) => setFormState((prev) => ({ ...prev, terms: event.target.value }))}
                   />
+                  <p className="text-xs text-muted-foreground">
+                    We package these details into a JSON blob, upload it to IPFS (if configured), and store the resulting
+                    CID on-chain.
+                  </p>
                 </div>
 
                 <div className="flex gap-4 pt-4">

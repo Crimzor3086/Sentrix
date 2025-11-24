@@ -15,6 +15,7 @@ import { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ZeroAddress } from "ethers";
+import { persistLicenseTerms } from "@/lib/ipfs";
 
 type MarketplaceListing = {
   asset: RegistryAsset;
@@ -64,13 +65,28 @@ export default function LicenseMarketplace() {
         throw new Error("Set a listing fee in ETH");
       }
 
+      const selectedAsset = ownedAssets.find((asset) => asset.id === listingForm.assetId);
+      const termsMetadata = {
+        assetId: listingForm.assetId,
+        assetTitle: selectedAsset?.title,
+        category: selectedAsset?.category,
+        feeEth: listingForm.fee,
+        directedLicensee: listingForm.licensee || null,
+        notes: listingForm.terms,
+        createdAt: new Date().toISOString(),
+        network: "mantle-sepolia",
+        source: "marketplace-quick-publish",
+      };
+
+      const termsURI = await persistLicenseTerms(termsMetadata);
+
       const contract = await getLicensingContract();
       const tx = await contract.createLicense(
         BigInt(listingForm.assetId),
         0,
         0,
         parseEther(listingForm.fee),
-        listingForm.terms || "",
+        termsURI,
         listingForm.licensee || ZeroAddress
       );
       return tx.wait();
@@ -206,7 +222,7 @@ export default function LicenseMarketplace() {
                     className="glass border-border min-h-[100px]"
                   />
                   <p className="text-xs text-muted-foreground">
-                    Paste an IPFS/HTTPS link for the full agreement or add a short description (stored on-chain).
+                    Add helpful context; we will automatically encode/upload the JSON and reference its CID on-chain.
                   </p>
                 </div>
 

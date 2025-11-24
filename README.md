@@ -92,6 +92,14 @@ VITE_SENTRIX_LICENSING_ADDRESS=0xLicensingAddressHere
 
 Restart `npm run dev` after changing env vars.
 
+### Optional: IPFS uploads for license terms
+
+If you provide a [web3.storage](https://web3.storage) API token, Sentrix will automatically package license terms into a JSON document, upload it to IPFS, and store the resulting CID on-chain. Without this token we fall back to embedding the JSON as a base64 data URI.
+
+```
+VITE_WEB3_STORAGE_TOKEN=your_long_api_token
+```
+
 ## How can I deploy this project?
 
 Simply open [Lovable](https://lovable.dev/projects/3a9be153-0265-49b3-b45d-07266cab921c) and click on Share -> Publish.
