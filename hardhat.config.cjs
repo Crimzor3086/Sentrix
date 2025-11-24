@@ -11,6 +11,7 @@ module.exports = {
   },
   networks: {
     mantleSepolia: {
+      type: "http",
       url: MANTLE_SEPOLIA_RPC_URL || "",
       accounts: PRIVATE_KEY ? [PRIVATE_KEY] : [],
     },
