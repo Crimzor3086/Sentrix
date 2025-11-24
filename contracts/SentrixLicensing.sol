@@ -75,9 +75,7 @@ contract SentrixLicensing {
         if (fee == 0) {
             revert InvalidFee();
         }
-        if (licensee == address(0)) {
-            revert InvalidLicensee();
-        }
+        // licensee can be left blank to create an open listing
 
         licenseId = _nextLicenseId++;
 
@@ -107,6 +105,14 @@ contract SentrixLicensing {
             revert InvalidStatus();
         }
         if (msg.sender != listing.licensee) {
+            if (listing.licensee != address(0)) {
+                revert InvalidLicensee();
+            }
+        }
+
+        if (listing.licensee == address(0)) {
+            listing.licensee = msg.sender;
+        } else if (msg.sender != listing.licensee) {
             revert InvalidLicensee();
         }
         if (msg.value != listing.fee) {
