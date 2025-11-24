@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: sentrix-postgres
+    environment:
+      POSTGRES_USER: sentrix
+      POSTGRES_PASSWORD: sentrix_password
+      POSTGRES_DB: sentrix
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sentrix"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sentrix-backend
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DATABASE_URL: postgresql://sentrix:sentrix_password@postgres:5432/sentrix?schema=public
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
+      STORY_RPC_URL: ${STORY_RPC_URL}
+      STORY_CHAIN_ID: ${STORY_CHAIN_ID}
+      STORY_IP_ASSET_REGISTRY_ADDRESS: ${STORY_IP_ASSET_REGISTRY_ADDRESS}
+      STORY_LICENSING_MODULE_ADDRESS: ${STORY_LICENSING_MODULE_ADDRESS}
+      STORY_PRIVATE_KEY: ${STORY_PRIVATE_KEY}
+      PINATA_API_KEY: ${PINATA_API_KEY}
+      PINATA_SECRET_KEY: ${PINATA_SECRET_KEY}
+      SYNC_ENABLED: ${SYNC_ENABLED:-true}
+      SYNC_INTERVAL_SECONDS: ${SYNC_INTERVAL_SECONDS:-30}
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./prisma:/app/prisma
+    command: sh -c "npx prisma migrate deploy && npm start"
+
+volumes:
+  postgres_data:
+
