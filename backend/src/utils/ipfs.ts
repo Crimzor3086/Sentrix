@@ -24,7 +24,7 @@ export async function uploadToIPFS(
           name: fileName || `sentrix-${Date.now()}`,
         },
         pinataOptions: {
-          cidVersion: 0,
+          cidVersion: 0 as 0,
         },
       };
 
@@ -37,7 +37,7 @@ export async function uploadToIPFS(
           name: fileName || `sentrix-${Date.now()}`,
         },
         pinataOptions: {
-          cidVersion: 0,
+          cidVersion: 0 as 0,
         },
       };
 

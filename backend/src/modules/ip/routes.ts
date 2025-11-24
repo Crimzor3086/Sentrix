@@ -1,7 +1,8 @@
-import { FastifyInstance } from 'fastify';
+import { FastifyInstance, FastifyRequest } from 'fastify';
 import { z } from 'zod';
 import { createIPAsset, getIPAssetById, getIPAssetsByCreator } from './service.js';
-import { authenticate, AuthenticatedRequest } from '../auth/middleware.js';
+import { authenticate } from '../auth/middleware.js';
+import type { MultipartFile, MultipartValue } from '@fastify/multipart';
 
 const createIPSchema = z.object({
   title: z.string().min(1).max(200),
@@ -10,6 +11,13 @@ const createIPSchema = z.object({
   tags: z.array(z.string()).optional(),
   contentType: z.enum(['text', 'image', 'audio', 'file']),
 });
+
+const getFieldValue = (field?: MultipartValue | MultipartValue[]): string | undefined => {
+  if (!field) return undefined;
+  const value = Array.isArray(field) ? field[0] : field;
+  if (!value) return undefined;
+  return typeof value.value === 'string' ? value.value : undefined;
+};
 
 export async function ipRoutes(fastify: FastifyInstance) {
   /**
@@ -37,7 +45,7 @@ export async function ipRoutes(fastify: FastifyInstance) {
         },
       },
     },
-    async (request: AuthenticatedRequest, reply) => {
+    async (request: FastifyRequest, reply) => {
       try {
         const data = await request.file();
         
@@ -45,12 +53,14 @@ export async function ipRoutes(fastify: FastifyInstance) {
           return reply.status(400).send({ error: 'No file or content provided' });
         }
 
-        const fields = data.fields;
-        const title = fields.title?.value as string;
-        const description = fields.description?.value as string | undefined;
-        const category = fields.category?.value as string | undefined;
-        const tags = fields.tags?.value ? JSON.parse(fields.tags.value as string) : [];
-        const contentType = (fields.contentType?.value as string) || 'file';
+        const file = data as MultipartFile;
+        const fields = file.fields as Record<string, MultipartValue | MultipartValue[]>;
+        const title = getFieldValue(fields.title);
+        const description = getFieldValue(fields.description);
+        const category = getFieldValue(fields.category);
+        const tagsField = getFieldValue(fields.tags);
+        const contentType = getFieldValue(fields.contentType) || 'file';
+        const tags = tagsField ? JSON.parse(tagsField) : [];
 
         const validated = createIPSchema.parse({
           title,
@@ -60,8 +70,8 @@ export async function ipRoutes(fastify: FastifyInstance) {
           contentType,
         });
 
-        const buffer = await data.toBuffer();
-        const creatorWallet = request.user!.wallet;
+        const buffer = await file.toBuffer();
+        const creatorWallet = request.user.wallet;
 
         const ipAsset = await createIPAsset({
           ...validated,

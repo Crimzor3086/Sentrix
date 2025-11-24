@@ -1,17 +1,32 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 
-export interface AuthenticatedRequest extends FastifyRequest {
-  user?: {
-    wallet: string;
-    userId: string;
-  };
+declare module '@fastify/jwt' {
+  interface FastifyJWT {
+    payload: {
+      wallet: string;
+      userId: string;
+    };
+    user: {
+      wallet: string;
+      userId: string;
+    };
+  }
+}
+
+declare module 'fastify' {
+  interface FastifyRequest {
+    user: {
+      wallet: string;
+      userId: string;
+    };
+  }
 }
 
 /**
  * JWT authentication middleware
  */
 export async function authenticate(
-  request: AuthenticatedRequest,
+  request: FastifyRequest,
   reply: FastifyReply
 ) {
   try {

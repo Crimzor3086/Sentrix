@@ -1,7 +1,8 @@
-import { FastifyInstance } from 'fastify';
+import { FastifyInstance, FastifyRequest } from 'fastify';
 import { z } from 'zod';
 import { submitReport, getReportsByIP } from './service.js';
-import { authenticate, AuthenticatedRequest } from '../auth/middleware.js';
+import { authenticate } from '../auth/middleware.js';
+import type { MultipartFile, MultipartValue } from '@fastify/multipart';
 
 const submitReportSchema = z.object({
   ipId: z.string(),
@@ -9,6 +10,13 @@ const submitReportSchema = z.object({
   screenshotUrl: z.string().url().optional(),
   fileUrl: z.string().url().optional(),
 });
+
+const getFieldValue = (field?: MultipartValue | MultipartValue[]): string | undefined => {
+  if (!field) return undefined;
+  const value = Array.isArray(field) ? field[0] : field;
+  if (!value) return undefined;
+  return typeof value.value === 'string' ? value.value : undefined;
+};
 
 export async function reportRoutes(fastify: FastifyInstance) {
   /**
@@ -35,7 +43,7 @@ export async function reportRoutes(fastify: FastifyInstance) {
         },
       },
     },
-    async (request: AuthenticatedRequest, reply) => {
+    async (request: FastifyRequest, reply) => {
       try {
         const data = await request.file();
         
@@ -43,11 +51,12 @@ export async function reportRoutes(fastify: FastifyInstance) {
           return reply.status(400).send({ error: 'No file or content provided' });
         }
 
-        const fields = data.fields;
-        const ipId = fields.ipId?.value as string;
-        const url = fields.url?.value as string | undefined;
-        const screenshotUrl = fields.screenshotUrl?.value as string | undefined;
-        const fileUrl = fields.fileUrl?.value as string | undefined;
+        const file = data as MultipartFile;
+        const fields = file.fields as Record<string, MultipartValue | MultipartValue[]>;
+        const ipId = getFieldValue(fields.ipId);
+        const url = getFieldValue(fields.url);
+        const screenshotUrl = getFieldValue(fields.screenshotUrl);
+        const fileUrl = getFieldValue(fields.fileUrl);
 
         const validated = submitReportSchema.parse({
           ipId,
@@ -56,8 +65,8 @@ export async function reportRoutes(fastify: FastifyInstance) {
           fileUrl,
         });
 
-        const buffer = await data.toBuffer();
-        const reporterWallet = request.user!.wallet;
+        const buffer = await file.toBuffer();
+        const reporterWallet = request.user.wallet;
 
         const report = await submitReport({
           ...validated,

@@ -1,5 +1,5 @@
 import { prisma } from '../../config/database.js';
-import { createPublicClient, http, type Address, parseAbi, decodeEventLog } from 'viem';
+import { createPublicClient, http, type Address, parseAbi, decodeEventLog, defineChain } from 'viem';
 import env from '../../config/env.js';
 
 // Contract ABIs for event decoding
@@ -18,6 +18,28 @@ const LICENSE_PURCHASED_EVENT = 'LicensePurchased';
 
 let publicClient: ReturnType<typeof createPublicClient> | null = null;
 
+const storyChain = defineChain({
+  id: env.STORY_CHAIN_ID,
+  name: 'Mantle Sepolia',
+  network: 'mantle-sepolia',
+  nativeCurrency: {
+    name: 'Mantle Testnet ETH',
+    symbol: 'MNT',
+    decimals: 18,
+  },
+  rpcUrls: {
+    default: { http: [env.STORY_RPC_URL] },
+    public: { http: [env.STORY_RPC_URL] },
+  },
+  blockExplorers: {
+    default: {
+      name: 'Mantle Explorer',
+      url: 'https://explorer.sepolia.mantle.xyz',
+    },
+  },
+  testnet: true,
+});
+
 /**
  * Initialize public client for Story Protocol
  */
@@ -25,12 +47,7 @@ function initPublicClient() {
   if (publicClient) return publicClient;
 
   publicClient = createPublicClient({
-    chain: {
-      id: env.STORY_CHAIN_ID,
-      rpcUrls: {
-        default: { http: [env.STORY_RPC_URL] },
-      },
-    },
+    chain: storyChain,
     transport: http(env.STORY_RPC_URL),
   });
 

@@ -1,4 +1,12 @@
-import { createWalletClient, createPublicClient, http, type Address, parseAbi } from 'viem';
+import {
+  createWalletClient,
+  createPublicClient,
+  http,
+  type Address,
+  parseAbi,
+  decodeEventLog,
+  defineChain,
+} from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import env from '../config/env.js';
 
@@ -22,12 +30,29 @@ const LICENSING_MODULE_ABI = parseAbi([
 let walletClient: ReturnType<typeof createWalletClient> | null = null;
 let publicClient: ReturnType<typeof createPublicClient> | null = null;
 
-const chain = {
+const signerAccount = privateKeyToAccount(env.STORY_PRIVATE_KEY as `0x${string}`);
+
+const storyChain = defineChain({
   id: env.STORY_CHAIN_ID,
+  name: 'Mantle Sepolia',
+  network: 'mantle-sepolia',
+  nativeCurrency: {
+    name: 'Mantle Testnet ETH',
+    symbol: 'MNT',
+    decimals: 18,
+  },
   rpcUrls: {
     default: { http: [env.STORY_RPC_URL] },
+    public: { http: [env.STORY_RPC_URL] },
   },
-};
+  blockExplorers: {
+    default: {
+      name: 'Mantle Explorer',
+      url: 'https://explorer.sepolia.mantle.xyz',
+    },
+  },
+  testnet: true,
+});
 
 /**
  * Initialize Story Protocol wallet client
@@ -35,11 +60,9 @@ const chain = {
 export function initStoryClient() {
   if (walletClient) return walletClient;
 
-  const account = privateKeyToAccount(env.STORY_PRIVATE_KEY as `0x${string}`);
-  
   walletClient = createWalletClient({
-    account,
-    chain,
+    account: signerAccount,
+    chain: storyChain,
     transport: http(env.STORY_RPC_URL),
   });
 
@@ -53,7 +76,7 @@ export function initPublicClient() {
   if (publicClient) return publicClient;
 
   publicClient = createPublicClient({
-    chain,
+    chain: storyChain,
     transport: http(env.STORY_RPC_URL),
   });
 
@@ -80,7 +103,8 @@ export async function registerIPAsset(
     abi: IP_ASSET_REGISTRY_ABI,
     functionName: 'registerIPAsset',
     args: [ipfsHash, metadataHash],
-    account: client.account,
+    account: signerAccount,
+    chain: storyChain,
   });
 
   const receipt = await publicClient.waitForTransactionReceipt({ hash });
@@ -88,11 +112,13 @@ export async function registerIPAsset(
   // Extract IP ID from event
   const ipRegisteredEvent = receipt.logs.find((log) => {
     try {
-      return publicClient.decodeEventLog({
-        abi: IP_ASSET_REGISTRY_ABI,
-        data: log.data,
-        topics: log.topics,
-      }).eventName === 'IPRegistered';
+      return (
+        decodeEventLog({
+          abi: IP_ASSET_REGISTRY_ABI,
+          data: log.data,
+          topics: log.topics,
+        }).eventName === 'IPRegistered'
+      );
     } catch {
       return false;
     }
@@ -102,7 +128,7 @@ export async function registerIPAsset(
     throw new Error('IPRegistered event not found in transaction');
   }
 
-  const decoded = publicClient.decodeEventLog({
+  const decoded = decodeEventLog({
     abi: IP_ASSET_REGISTRY_ABI,
     data: ipRegisteredEvent.data,
     topics: ipRegisteredEvent.topics,
@@ -154,7 +180,8 @@ export async function createLicense(
       terms.exclusivity || false,
       expiresAt,
     ],
-    account: client.account,
+    account: signerAccount,
+    chain: storyChain,
   });
 
   const receipt = await publicClient.waitForTransactionReceipt({ hash });
@@ -162,11 +189,13 @@ export async function createLicense(
   // Extract license ID from event
   const licenseCreatedEvent = receipt.logs.find((log) => {
     try {
-      return publicClient.decodeEventLog({
-        abi: LICENSING_MODULE_ABI,
-        data: log.data,
-        topics: log.topics,
-      }).eventName === 'LicenseCreated';
+      return (
+        decodeEventLog({
+          abi: LICENSING_MODULE_ABI,
+          data: log.data,
+          topics: log.topics,
+        }).eventName === 'LicenseCreated'
+      );
     } catch {
       return false;
     }
@@ -176,7 +205,7 @@ export async function createLicense(
     throw new Error('LicenseCreated event not found in transaction');
   }
 
-  const decoded = publicClient.decodeEventLog({
+  const decoded = decodeEventLog({
     abi: LICENSING_MODULE_ABI,
     data: licenseCreatedEvent.data,
     topics: licenseCreatedEvent.topics,
@@ -220,7 +249,8 @@ export async function purchaseLicense(
     abi: LICENSING_MODULE_ABI,
     functionName: 'purchaseLicense',
     args: [BigInt(licenseId), certificateHash],
-    account: client.account,
+    account: signerAccount,
+    chain: storyChain,
     value: price,
   });
 

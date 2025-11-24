@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { createLicenseForIP, purchaseLicenseForUser, getLicensesByUser } from './service.js';
-import { authenticate, AuthenticatedRequest } from '../auth/middleware.js';
+import { authenticate } from '../auth/middleware.js';
 
 const createLicenseSchema = z.object({
   ipId: z.string(),
@@ -50,10 +50,14 @@ export async function licenseRoutes(fastify: FastifyInstance) {
         },
       },
     },
-    async (request: AuthenticatedRequest, reply) => {
+    async (request, reply) => {
       try {
         const validated = createLicenseSchema.parse(request.body);
-        const creatorWallet = request.user!.wallet;
+        const creatorWallet = request.user?.wallet;
+
+        if (!creatorWallet) {
+          return reply.status(401).send({ error: 'Unauthorized' });
+        }
 
         const license = await createLicenseForIP({
           ...validated,
@@ -96,10 +100,14 @@ export async function licenseRoutes(fastify: FastifyInstance) {
         },
       },
     },
-    async (request: AuthenticatedRequest, reply) => {
+    async (request, reply) => {
       try {
         const { licenseId } = purchaseLicenseSchema.parse(request.body);
-        const buyerWallet = request.user!.wallet;
+        const buyerWallet = request.user?.wallet;
+
+        if (!buyerWallet) {
+          return reply.status(401).send({ error: 'Unauthorized' });
+        }
 
         const result = await purchaseLicenseForUser({
           licenseId,
