@@ -78,6 +78,11 @@ Solidity sources live under `contracts/`:
 - `SentrixRegistry.sol` keeps track of IP assets and metadata URIs
 - `SentrixLicensing.sol` issues programmable licenses that settle payments on acceptance
 
+### Current deployment (Mantle Sepolia)
+
+- `SentrixRegistry`: `0xD65143F3861d7fc09514c4e5bDA0264Bd4EE2EF1`
+- `SentrixLicensing`: `0x98E066d8Fe0dCcA41005EB2f3E45179cEbE9FC2C`
+
 Deploy both contracts (any EVM chain) and copy their addresses into a `.env` file:
 
 ```
