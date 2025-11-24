@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Shield, Wallet, LogOut } from "lucide-react";
+import { Wallet, LogOut } from "lucide-react";
 import { useWallet } from "@/contexts/WalletContext";
 import {
   DropdownMenu,
@@ -10,6 +10,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Logo } from "@/components/Logo";
 
 export const Navbar = () => {
   const { isConnected, address, disconnect } = useWallet();
@@ -22,9 +23,8 @@ export const Navbar = () => {
     <nav className="glass-card border-b border-glass-border sticky top-0 z-50">
       <div className="container mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 group">
-            <Shield className="h-8 w-8 text-primary group-hover:glow-purple transition-smooth" />
-            <span className="text-2xl font-bold gradient-text">Sentrix</span>
+          <Link to="/" className="flex items-center gap-2 group" aria-label="Go to Sentrix home">
+            <Logo className="h-8 transition-smooth group-hover:drop-shadow-[0_0_12px_rgba(139,92,246,0.6)]" />
           </Link>
 
           {isConnected && (

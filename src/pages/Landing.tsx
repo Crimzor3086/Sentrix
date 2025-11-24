@@ -1,10 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Shield, FileText, Scale, AlertTriangle, ArrowRight } from "lucide-react";
+import { FileText, Scale, AlertTriangle, ArrowRight } from "lucide-react";
 import { useState } from "react";
 import { WalletConnectModal } from "@/components/WalletConnectModal";
 import { useWallet } from "@/contexts/WalletContext";
 import { useNavigate } from "react-router-dom";
+import { Logo } from "@/components/Logo";
 
 export default function Landing() {
   const [showWalletModal, setShowWalletModal] = useState(false);
@@ -27,7 +28,7 @@ export default function Landing() {
         <div className="container mx-auto px-6 py-24 relative z-10">
           <div className="max-w-4xl mx-auto text-center">
             <div className="inline-flex items-center gap-2 px-4 py-2 glass-card mb-8 animate-float">
-              <Shield className="h-5 w-5 text-primary" />
+              <Logo variant="icon" className="h-5 w-5" />
               <span className="text-sm">Powered by Story Protocol</span>
             </div>
             
@@ -120,8 +121,7 @@ export default function Landing() {
         <div className="container mx-auto px-6">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-2">
-              <Shield className="h-6 w-6 text-primary" />
-              <span className="text-lg font-bold gradient-text">Sentrix</span>
+              <Logo className="h-6" />
             </div>
             <p className="text-sm text-muted-foreground">
               Built on Story Protocol • Securing Creative Assets On-Chain
