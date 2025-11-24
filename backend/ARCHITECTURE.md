@@ -4,7 +4,7 @@
 
 ```
 ┌─────────────┐
-│   Frontend  │ (Lovable/React)
+│   Frontend  │ (React/TypeScript)
 │  (Port 5173)│
 └──────┬──────┘
        │ HTTP/REST

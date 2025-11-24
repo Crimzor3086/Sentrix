@@ -278,6 +278,8 @@ npm run prisma:migrate deploy
 
 4. **CORS**: Configure `FRONTEND_URL` to match your frontend domain.
 
+5. **Frontend Integration**: The API is ready to connect to your React frontend. Update the frontend's API base URL to `http://localhost:3001` (or your production backend URL).
+
 ## 📝 License
 
 MIT
