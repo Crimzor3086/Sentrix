@@ -60,6 +60,22 @@ This project is built with:
 - shadcn-ui
 - Tailwind CSS
 
+## Smart contracts
+
+Solidity sources live under `contracts/`:
+
+- `SentrixRegistry.sol` keeps track of IP assets and metadata URIs
+- `SentrixLicensing.sol` issues programmable licenses that settle payments on acceptance
+
+Deploy both contracts (any EVM chain) and copy their addresses into a `.env` file:
+
+```
+VITE_SENTRIX_REGISTRY_ADDRESS=0xRegistryAddressHere
+VITE_SENTRIX_LICENSING_ADDRESS=0xLicensingAddressHere
+```
+
+Restart `npm run dev` after changing env vars.
+
 ## How can I deploy this project?
 
 Simply open [Lovable](https://lovable.dev/projects/3a9be153-0265-49b3-b45d-07266cab921c) and click on Share -> Publish.

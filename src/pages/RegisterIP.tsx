@@ -9,26 +9,62 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { Progress } from "@/components/ui/progress";
+import { useWallet } from "@/contexts/WalletContext";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { encodeMetadataURI } from "@/lib/metadata";
+import { getRegistryContract } from "@/lib/contracts";
 
 export default function RegisterIP() {
-  const [uploading, setUploading] = useState(false);
-  const [progress, setProgress] = useState(0);
+  const [formData, setFormData] = useState({
+    title: "",
+    category: "",
+    description: "",
+    reference: "",
+  });
+  const [previewName, setPreviewName] = useState("No reference supplied");
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { isConnected } = useWallet();
+
+  const { mutateAsync, isPending } = useMutation({
+    mutationFn: async () => {
+      const contract = await getRegistryContract();
+      const metadataURI = encodeMetadataURI({
+        title: formData.title,
+        description: formData.description,
+        category: formData.category,
+        reference: formData.reference,
+        createdAt: Date.now(),
+      });
+
+      const tx = await contract.registerAsset(formData.title, formData.category, metadataURI);
+      return tx.wait();
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["registryAssets"] });
+      toast.success("IP asset registered successfully!");
+      navigate("/ip/assets");
+    },
+    onError: (error: unknown) => {
+      const message = error instanceof Error ? error.message : "Failed to register asset";
+      toast.error(message);
+    },
+  });
+
+  const handleReferenceChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value;
+    setFormData((prev) => ({ ...prev, reference: value }));
+    setPreviewName(value || "No reference supplied");
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setUploading(true);
-    
-    // Simulate upload progress
-    for (let i = 0; i <= 100; i += 10) {
-      await new Promise(resolve => setTimeout(resolve, 200));
-      setProgress(i);
+    if (!isConnected) {
+      toast.error("Connect your wallet before minting");
+      return;
     }
-    
-    toast.success("IP Asset registered successfully!");
-    setTimeout(() => {
-      navigate("/ip/assets");
-    }, 1000);
+
+    await mutateAsync();
   };
 
   return (
@@ -46,17 +82,23 @@ export default function RegisterIP() {
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-2">
                   <Label htmlFor="title">IP Title</Label>
-                  <Input 
-                    id="title" 
-                    placeholder="Enter asset title" 
+                  <Input
+                    id="title"
+                    placeholder="Enter asset title"
                     className="glass border-border focus:border-primary"
+                    value={formData.title}
+                    onChange={(event) => setFormData((prev) => ({ ...prev, title: event.target.value }))}
                     required
                   />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="category">Category</Label>
-                  <Select required>
+                  <Select
+                    required
+                    value={formData.category}
+                    onValueChange={(value) => setFormData((prev) => ({ ...prev, category: value }))}
+                  >
                     <SelectTrigger className="glass border-border">
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
@@ -73,35 +115,40 @@ export default function RegisterIP() {
 
                 <div className="space-y-2">
                   <Label htmlFor="description">Description</Label>
-                  <Textarea 
-                    id="description" 
+                  <Textarea
+                    id="description"
                     placeholder="Describe your IP asset..."
                     className="glass border-border focus:border-primary min-h-[120px]"
+                    value={formData.description}
+                    onChange={(event) => setFormData((prev) => ({ ...prev, description: event.target.value }))}
                     required
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Upload File</Label>
-                  <div className="glass border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-primary transition-smooth cursor-pointer">
-                    <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                    <p className="text-sm text-muted-foreground mb-2">
-                      Drag and drop or click to upload
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Supports images, audio, video, documents (Max 50MB)
-                    </p>
-                    <Input type="file" className="hidden" id="file-upload" />
+                  <Label htmlFor="reference">Reference / IPFS CID</Label>
+                  <div className="glass border-2 border-dashed border-border rounded-lg p-6 space-y-3">
+                    <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                      <Upload className="h-4 w-4" />
+                      <span>Paste a CID, Arweave hash, or HTTPS url</span>
+                    </div>
+                    <Input
+                      id="reference"
+                      placeholder="ipfs://..."
+                      className="glass border-border focus:border-primary"
+                      value={formData.reference}
+                      onChange={handleReferenceChange}
+                    />
                   </div>
                 </div>
 
-                {uploading && (
+                {isPending && (
                   <div className="space-y-2">
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Minting to Story Protocol...</span>
-                      <span className="font-medium">{progress}%</span>
+                      <span className="text-muted-foreground">Submitting transaction...</span>
+                      <span className="font-medium">Pending</span>
                     </div>
-                    <Progress value={progress} className="h-2" />
+                    <Progress value={100} className="h-2 animate-pulse" />
                   </div>
                 )}
 
@@ -114,12 +161,12 @@ export default function RegisterIP() {
                   >
                     Cancel
                   </Button>
-                  <Button 
-                    type="submit" 
+                  <Button
+                    type="submit"
                     className="bg-gradient-primary hover:opacity-90 glow-purple flex-1"
-                    disabled={uploading}
+                    disabled={isPending}
                   >
-                    {uploading ? "Minting..." : "Mint IP Token"}
+                    {isPending ? "Minting..." : "Mint IP Token"}
                   </Button>
                 </div>
               </form>
@@ -137,7 +184,7 @@ export default function RegisterIP() {
                     <FileText className="h-12 w-12 text-muted-foreground" />
                   </div>
                   <div className="text-sm space-y-2">
-                    <p className="text-muted-foreground">No file selected</p>
+                    <p className="text-muted-foreground">{previewName}</p>
                   </div>
                 </div>
               </Card>
