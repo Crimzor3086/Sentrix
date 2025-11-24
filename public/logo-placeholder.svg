@@ -1,16 +1,19 @@
 <svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Sentrix Placeholder -->
+  <!-- Sentrix Placeholder Logo -->
   <defs>
     <linearGradient id="placeholderGradient" x1="0" y1="0" x2="200" y2="200" gradientUnits="userSpaceOnUse">
       <stop offset="0%" stop-color="#3b82f6"/>
       <stop offset="100%" stop-color="#8b5cf6"/>
     </linearGradient>
   </defs>
-  <rect width="200" height="200" fill="#1a1a1a" rx="8"/>
-  <circle cx="100" cy="100" r="80" fill="url(#placeholderGradient)" opacity="0.1"/>
+  <!-- Background circle -->
+  <circle cx="100" cy="100" r="90" fill="url(#placeholderGradient)" opacity="0.1"/>
+  <!-- Shield icon -->
   <g transform="translate(50, 50)">
     <path d="M50 10 L90 30 L90 70 L75 100 L25 100 L10 70 L10 30 Z" fill="url(#placeholderGradient)" stroke="white" stroke-width="3" stroke-linejoin="round"/>
     <text x="50" y="65" font-family="system-ui, sans-serif" font-size="40" font-weight="700" fill="white" text-anchor="middle">S</text>
   </g>
-  <text x="100" y="160" font-family="Outfit, sans-serif" font-size="20" font-weight="700" fill="url(#placeholderGradient)" text-anchor="middle">SENTRIX</text>
+  <!-- Text -->
+  <text x="100" y="160" font-family="Outfit, sans-serif" font-size="24" font-weight="700" fill="url(#placeholderGradient)" text-anchor="middle">SENTRIX</text>
 </svg>
+

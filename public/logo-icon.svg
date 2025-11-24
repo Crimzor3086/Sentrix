@@ -1,0 +1,14 @@
+<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Sentrix Icon - Shield with S -->
+  <defs>
+    <linearGradient id="iconGradient" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#8b5cf6"/>
+    </linearGradient>
+  </defs>
+  <!-- Shield shape -->
+  <path d="M20 4 L30 9 L30 18 L25 26 L15 26 L10 18 L10 9 Z" fill="url(#iconGradient)" stroke="white" stroke-width="2" stroke-linejoin="round"/>
+  <!-- S letter -->
+  <text x="20" y="22" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="700" fill="white" text-anchor="middle">S</text>
+</svg>
+

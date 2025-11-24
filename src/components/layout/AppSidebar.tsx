@@ -46,14 +46,28 @@ export function AppSidebar() {
     <Sidebar className="border-r border-border">
       <SidebarContent>
         <div className="p-6 border-b border-border">
-          <h1 className="font-display text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            SENTRIX
-          </h1>
-          {open && (
-            <p className="text-xs text-muted-foreground mt-1">
-              AI Compliance Platform
-            </p>
-          )}
+          <div className="flex items-center gap-3">
+            <img 
+              src="/logo-icon.svg" 
+              alt="Sentrix Logo" 
+              className="h-8 w-8 flex-shrink-0"
+            />
+            {open && (
+              <div>
+                <h1 className="font-display text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                  SENTRIX
+                </h1>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  IP License Guard
+                </p>
+              </div>
+            )}
+            {!open && (
+              <h1 className="font-display text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                SX
+              </h1>
+            )}
+          </div>
         </div>
 
         <SidebarGroup>

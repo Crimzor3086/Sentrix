@@ -1,0 +1,15 @@
+<svg width="140" height="40" viewBox="0 0 140 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Sentrix Logo with Shield Icon -->
+  <defs>
+    <linearGradient id="logoGradient" x1="0" y1="0" x2="140" y2="40" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#8b5cf6"/>
+    </linearGradient>
+  </defs>
+  <!-- Shield icon -->
+  <path d="M8 4 L16 8 L16 14 L13 18 L5 18 L2 14 L2 8 Z" fill="url(#logoGradient)" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+  <text x="20" y="14" font-family="Outfit, sans-serif" font-size="20" font-weight="700" fill="url(#logoGradient)">
+    SENTRIX
+  </text>
+</svg>
+
