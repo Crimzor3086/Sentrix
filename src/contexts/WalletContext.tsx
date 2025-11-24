@@ -1,109 +1,41 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { useAccount, useConnect, useDisconnect, useSignMessage } from 'wagmi';
-import { getAuthNonce, verifySignature, storeAuthToken, removeAuthToken, getAuthToken } from '@/lib/wallet';
-import { toast } from 'sonner';
+import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 interface WalletContextType {
   isConnected: boolean;
-  address: string | undefined;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  connect: () => void;
+  address: string | null;
+  connect: () => Promise<void>;
   disconnect: () => void;
-  authenticate: () => Promise<void>;
 }
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
 
-export function WalletProvider({ children }: { children: ReactNode }) {
-  const { address, isConnected } = useAccount();
-  const { connect, connectors } = useConnect();
-  const { disconnect: wagmiDisconnect } = useDisconnect();
-  const { signMessageAsync } = useSignMessage();
-  
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+export const WalletProvider = ({ children }: { children: ReactNode }) => {
+  const [isConnected, setIsConnected] = useState(false);
+  const [address, setAddress] = useState<string | null>(null);
 
-  // Check if user is already authenticated on mount
-  useEffect(() => {
-    const token = getAuthToken();
-    if (token && isConnected && address) {
-      setIsAuthenticated(true);
-    }
-  }, [isConnected, address]);
-
-  const handleConnect = () => {
-    if (connectors.length > 0) {
-      connect({ connector: connectors[0] });
-    }
+  const connect = async () => {
+    // Placeholder wallet connection - in production, integrate with actual wallet provider
+    const mockAddress = `0x${Math.random().toString(16).substring(2, 42)}`;
+    setAddress(mockAddress);
+    setIsConnected(true);
   };
 
-  const handleDisconnect = () => {
-    wagmiDisconnect();
-    removeAuthToken();
-    setIsAuthenticated(false);
-    toast.success('Wallet disconnected');
+  const disconnect = () => {
+    setAddress(null);
+    setIsConnected(false);
   };
-
-  const handleAuthenticate = async () => {
-    if (!address || !isConnected) {
-      toast.error('Please connect your wallet first');
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      // Get nonce from backend
-      const { message } = await getAuthNonce(address);
-
-      // Sign message with wallet
-      const signature = await signMessageAsync({ message });
-
-      // Verify signature and get token
-      const { token, user } = await verifySignature(address, signature);
-
-      // Store token
-      storeAuthToken(token);
-      setIsAuthenticated(true);
-
-      toast.success(`Authenticated as ${address.slice(0, 6)}...${address.slice(-4)}`);
-    } catch (error: any) {
-      console.error('Authentication error:', error);
-      toast.error(error.message || 'Authentication failed');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Auto-authenticate when wallet connects
-  useEffect(() => {
-    if (isConnected && address && !isAuthenticated && !isLoading) {
-      handleAuthenticate();
-    }
-  }, [isConnected, address]);
 
   return (
-    <WalletContext.Provider
-      value={{
-        isConnected,
-        address,
-        isAuthenticated,
-        isLoading,
-        connect: handleConnect,
-        disconnect: handleDisconnect,
-        authenticate: handleAuthenticate,
-      }}
-    >
+    <WalletContext.Provider value={{ isConnected, address, connect, disconnect }}>
       {children}
     </WalletContext.Provider>
   );
-}
+};
 
-export function useWallet() {
+export const useWallet = () => {
   const context = useContext(WalletContext);
   if (context === undefined) {
     throw new Error('useWallet must be used within a WalletProvider');
   }
   return context;
-}
-
+};

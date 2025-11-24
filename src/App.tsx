@@ -3,45 +3,48 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { WagmiProvider } from 'wagmi';
-import { wagmiConfig } from "@/lib/wallet";
-import { WalletProvider } from "@/contexts/WalletContext";
-import { AppLayout } from "./components/layout/AppLayout";
+import { WalletProvider } from "./contexts/WalletContext";
+import { Navbar } from "./components/Navbar";
+import { ProtectedRoute } from "./components/ProtectedRoute";
+import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
-import Scan from "./pages/Scan";
-import Compliance from "./pages/Compliance";
-import Licensing from "./pages/Licensing";
-import Analytics from "./pages/Analytics";
+import RegisterIP from "./pages/RegisterIP";
+import IPAssets from "./pages/IPAssets";
+import IPAssetDetail from "./pages/IPAssetDetail";
+import CreateLicense from "./pages/CreateLicense";
+import LicenseMarketplace from "./pages/LicenseMarketplace";
+import Violations from "./pages/Violations";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
 const App = () => (
-  <WagmiProvider config={wagmiConfig}>
-    <QueryClientProvider client={queryClient}>
+  <QueryClientProvider client={queryClient}>
+    <WalletProvider>
       <TooltipProvider>
-        <WalletProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <AppLayout>
-              <Routes>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/scan" element={<Scan />} />
-                <Route path="/compliance" element={<Compliance />} />
-                <Route path="/licensing" element={<Licensing />} />
-                <Route path="/analytics" element={<Analytics />} />
-                <Route path="/settings" element={<Settings />} />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </AppLayout>
-          </BrowserRouter>
-        </WalletProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <div className="min-h-screen bg-background">
+            <Navbar />
+            <Routes>
+              <Route path="/" element={<Landing />} />
+              <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+              <Route path="/ip/register" element={<ProtectedRoute><RegisterIP /></ProtectedRoute>} />
+              <Route path="/ip/assets" element={<ProtectedRoute><IPAssets /></ProtectedRoute>} />
+              <Route path="/ip/:id" element={<ProtectedRoute><IPAssetDetail /></ProtectedRoute>} />
+              <Route path="/ip/:id/license" element={<ProtectedRoute><CreateLicense /></ProtectedRoute>} />
+              <Route path="/licenses" element={<LicenseMarketplace />} />
+              <Route path="/violations" element={<ProtectedRoute><Violations /></ProtectedRoute>} />
+              <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </div>
+        </BrowserRouter>
       </TooltipProvider>
-    </QueryClientProvider>
-  </WagmiProvider>
+    </WalletProvider>
+  </QueryClientProvider>
 );
 
 export default App;

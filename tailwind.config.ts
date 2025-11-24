@@ -57,15 +57,14 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
-        neon: {
-          blue: "hsl(var(--neon-blue))",
-          cyan: "hsl(var(--neon-cyan))",
-          orange: "hsl(var(--neon-orange))",
+        glass: {
+          DEFAULT: "hsl(var(--glass-bg))",
+          border: "hsl(var(--glass-border))",
         },
-      },
-      fontFamily: {
-        sans: ['DM Sans', 'system-ui', '-apple-system', 'sans-serif'],
-        display: ['Outfit', 'system-ui', '-apple-system', 'sans-serif'],
+        glow: {
+          purple: "hsl(var(--glow-purple))",
+          cyan: "hsl(var(--glow-cyan))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -89,41 +88,30 @@ export default {
             height: "0",
           },
         },
-        "glow-pulse": {
-          "0%, 100%": {
-            boxShadow: "0 0 20px hsl(var(--neon-blue) / 0.5)",
-          },
-          "50%": {
-            boxShadow: "0 0 30px hsl(var(--neon-blue) / 0.8), 0 0 40px hsl(var(--neon-cyan) / 0.4)",
-          },
+        "float": {
+          "0%, 100%": { transform: "translateY(0px)" },
+          "50%": { transform: "translateY(-10px)" },
+        },
+        "pulse-glow": {
+          "0%, 100%": { opacity: "1" },
+          "50%": { opacity: "0.5" },
         },
         "slide-in": {
-          from: {
-            transform: "translateX(-100%)",
-            opacity: "0",
-          },
-          to: {
-            transform: "translateX(0)",
-            opacity: "1",
-          },
-        },
-        "fade-in": {
-          from: {
-            opacity: "0",
-            transform: "translateY(10px)",
-          },
-          to: {
-            opacity: "1",
-            transform: "translateY(0)",
-          },
+          "0%": { transform: "translateX(-100%)", opacity: "0" },
+          "100%": { transform: "translateX(0)", opacity: "1" },
         },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
-        "glow-pulse": "glow-pulse 3s ease-in-out infinite",
+        "float": "float 3s ease-in-out infinite",
+        "pulse-glow": "pulse-glow 2s ease-in-out infinite",
         "slide-in": "slide-in 0.3s ease-out",
-        "fade-in": "fade-in 0.5s ease-out",
+      },
+      backgroundImage: {
+        "gradient-primary": "var(--gradient-primary)",
+        "gradient-accent": "var(--gradient-accent)",
+        "gradient-hero": "var(--gradient-hero)",
       },
     },
   },

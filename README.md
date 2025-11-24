@@ -1,252 +1,73 @@
-# Sentrix - Decentralized IP License Guard
+# Welcome to your Lovable project
 
-**Decentralized IP License Guard** - Tokenize intellectual property and protect it on-chain with Story Protocol.
+## Project info
 
-## 🚀 Overview
+**URL**: https://lovable.dev/projects/3a9be153-0265-49b3-b45d-07266cab921c
 
-Sentrix is a comprehensive platform that enables creators to:
-- **Tokenize IP** and store metadata on Story Protocol L1
-- **Create and sell licenses** for their intellectual property
-- **Detect violations** with automated authenticity reports
-- **Track analytics** with real-time blockchain event syncing
+## How can I edit this code?
 
-## 🏗️ Architecture
+There are several ways of editing your application.
 
-This project consists of:
-- **Frontend**: React + TypeScript + Vite (Port 5173)
-- **Backend**: Node.js + Fastify + TypeScript (Port 3001)
-- **Database**: PostgreSQL with Prisma ORM
-- **Blockchain**: Story Protocol L1 integration
-- **Storage**: IPFS via Pinata
+**Use Lovable**
 
-## 📋 Prerequisites
+Simply visit the [Lovable Project](https://lovable.dev/projects/3a9be153-0265-49b3-b45d-07266cab921c) and start prompting.
 
-- **Node.js** 20+ or **Bun**
-- **PostgreSQL** 16+
-- **Pinata account** (for IPFS storage)
-- **Story Protocol** testnet/mainnet access
-- **Ethereum wallet** with private key
+Changes made via Lovable will be committed automatically to this repo.
 
-## 🛠️ Installation
+**Use your preferred IDE**
 
-### 1. Clone the Repository
+If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
 
-```bash
+The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+
+Follow these steps:
+
+```sh
+# Step 1: Clone the repository using the project's Git URL.
 git clone <YOUR_GIT_URL>
-cd Sentrix
-```
 
-### 2. Install Frontend Dependencies
+# Step 2: Navigate to the project directory.
+cd <YOUR_PROJECT_NAME>
 
-```bash
-npm install
-```
+# Step 3: Install the necessary dependencies.
+npm i
 
-### 3. Install Backend Dependencies
-
-```bash
-cd backend
-npm install
-```
-
-### 4. Set Up Environment Variables
-
-**Frontend**: Create `.env` in root (if needed)
-
-**Backend**: Create `.env` in `backend/` directory:
-
-```bash
-cd backend
-cp env.example .env
-# Edit .env with your configuration
-```
-
-See [backend/README.md](./backend/README.md) for detailed environment setup.
-
-### 5. Set Up Database
-
-```bash
-cd backend
-npm run prisma:generate
-npm run prisma:migrate
-```
-
-## 🏃 Running the Application
-
-### Development Mode
-
-**Terminal 1 - Frontend:**
-```bash
+# Step 4: Start the development server with auto-reloading and an instant preview.
 npm run dev
 ```
-Frontend runs on `http://localhost:5173`
 
-**Terminal 2 - Backend:**
-```bash
-cd backend
-npm run dev
-```
-Backend runs on `http://localhost:3001`
+**Edit a file directly in GitHub**
 
-### Production Build
+- Navigate to the desired file(s).
+- Click the "Edit" button (pencil icon) at the top right of the file view.
+- Make your changes and commit the changes.
 
-**Frontend:**
-```bash
-npm run build
-npm run preview
-```
+**Use GitHub Codespaces**
 
-**Backend:**
-```bash
-cd backend
-npm run build
-npm start
-```
+- Navigate to the main page of your repository.
+- Click on the "Code" button (green button) near the top right.
+- Select the "Codespaces" tab.
+- Click on "New codespace" to launch a new Codespace environment.
+- Edit files directly within the Codespace and commit and push your changes once you're done.
 
-## 🐳 Docker Deployment
+## What technologies are used for this project?
 
-See [backend/README.md](./backend/README.md) for Docker setup instructions.
+This project is built with:
 
-## 📚 Documentation
+- Vite
+- TypeScript
+- React
+- shadcn-ui
+- Tailwind CSS
 
-- **Backend API**: [backend/README.md](./backend/README.md)
-- **API Documentation**: http://localhost:3001/docs (when backend is running)
-- **Architecture**: [backend/ARCHITECTURE.md](./backend/ARCHITECTURE.md)
-- **Quick Start**: [backend/QUICKSTART.md](./backend/QUICKSTART.md)
+## How can I deploy this project?
 
-## 🔌 API Endpoints
+Simply open [Lovable](https://lovable.dev/projects/3a9be153-0265-49b3-b45d-07266cab921c) and click on Share -> Publish.
 
-### Authentication
-- `GET /auth/nonce?wallet=0x...` - Generate authentication nonce
-- `POST /auth/verify` - Verify wallet signature and get JWT token
+## Can I connect a custom domain to my Lovable project?
 
-### IP Assets
-- `POST /ip/register` - Register a new IP Asset
-- `GET /ip/:id` - Get IP Asset by ID
-- `GET /ip/user/:wallet` - Get IP Assets by creator wallet
+Yes, you can!
 
-### Licensing
-- `POST /license/create` - Create a license for an IP Asset
-- `POST /license/purchase` - Purchase a license
-- `GET /license/user/:wallet` - Get licenses by user
+To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
-### Reports
-- `POST /report/submit` - Submit a violation report
-- `GET /report/ip/:id` - Get reports for an IP Asset
-
-### Analytics
-- `GET /analytics/ip/created` - IP creation analytics
-- `GET /analytics/licenses/sold` - License sales analytics
-- `GET /analytics/revenue` - Revenue analytics
-
-## 🔐 Authentication
-
-Sentrix uses **wallet-only authentication** (no email/password):
-
-1. Request a nonce from `/auth/nonce`
-2. Sign the message with your wallet
-3. Verify signature and receive JWT token
-4. Use token in `Authorization: Bearer <token>` header
-
-## 🛠️ Tech Stack
-
-### Frontend
-- **React** 18+ with TypeScript
-- **Vite** for build tooling
-- **shadcn-ui** components
-- **Tailwind CSS** for styling
-- **React Router** for navigation
-- **TanStack Query** for data fetching
-
-### Backend
-- **Fastify** web framework
-- **Prisma** ORM
-- **PostgreSQL** database
-- **viem** for blockchain interactions
-- **Story Protocol SDK** integration
-- **Pinata SDK** for IPFS storage
-
-## 📦 Project Structure
-
-```
-Sentrix/
-├── src/                    # Frontend source
-│   ├── components/        # React components
-│   ├── pages/            # Page components
-│   └── ...
-├── backend/               # Backend API
-│   ├── src/
-│   │   ├── modules/      # Feature modules
-│   │   ├── utils/        # Utilities
-│   │   └── config/       # Configuration
-│   └── prisma/           # Database schema
-├── public/               # Static assets
-└── package.json
-```
-
-## 🧪 Testing
-
-**Frontend:**
-```bash
-npm run lint
-```
-
-**Backend:**
-```bash
-cd backend
-npm test
-```
-
-## 🚀 Deployment
-
-### Frontend Deployment
-
-Build the frontend and deploy to your preferred hosting:
-- Vercel
-- Netlify
-- Cloudflare Pages
-- Any static hosting service
-
-### Backend Deployment
-
-See [backend/README.md](./backend/README.md) for deployment options including Docker.
-
-## 🔧 Development
-
-### Adding Features
-
-1. **Frontend**: Add components in `src/components/` and pages in `src/pages/`
-2. **Backend**: Create modules in `backend/src/modules/` following existing patterns
-3. **Database**: Update Prisma schema and run migrations
-
-### Code Style
-
-- TypeScript strict mode enabled
-- ESLint for code quality
-- Prettier (if configured) for formatting
-
-## 🚨 Important Notes
-
-1. **Story Protocol SDK**: Backend functions will throw errors until Story Protocol SDK is integrated. See `backend/src/utils/story.ts` for implementation details.
-2. **Environment Variables**: Never commit `.env` files. Use `.env.example` as template.
-3. **Security**: Use strong secrets in production, enable HTTPS.
-4. **CORS**: Configure `FRONTEND_URL` in backend `.env` to match your frontend domain.
-
-## 📝 License
-
-MIT
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📞 Support
-
-For issues and questions:
-- Open an issue on GitHub
-- Check documentation in `backend/README.md`
-- Review API docs at `/docs` endpoint when backend is running
+Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)

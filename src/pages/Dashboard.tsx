@@ -1,232 +1,127 @@
-import { useState, useEffect } from "react";
-import { MetricCard } from "@/components/dashboard/MetricCard";
-import { ShieldCheck, AlertTriangle, FileText, Clock } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { 
-  LineChart, 
-  Line, 
-  AreaChart,
-  Area,
-  PieChart, 
-  Pie, 
-  Cell,
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer,
-  Legend
-} from "recharts";
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-
-interface DashboardData {
-  totalScans: number;
-  safeOutputs: number;
-  violationsDetected: number;
-  pendingLicenses: number;
-  scanActivity: Array<{ month: string; scans: number }>;
-  violations: Array<{ name: string; value: number; color: string }>;
-  riskTrend: Array<{ week: string; risk: number }>;
-}
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { FileText, Scale, AlertTriangle, DollarSign, Plus, TrendingUp } from "lucide-react";
+import { Link } from "react-router-dom";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 
 export default function Dashboard() {
-  const [data, setData] = useState<DashboardData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const stats = [
+    { icon: FileText, label: "Total IP Assets", value: "12", change: "+2 this month", color: "text-primary" },
+    { icon: Scale, label: "Active Licenses", value: "28", change: "+5 this week", color: "text-accent" },
+    { icon: AlertTriangle, label: "Violations Detected", value: "3", change: "2 resolved", color: "text-destructive" },
+    { icon: DollarSign, label: "Total Revenue", value: "$4,320", change: "+12% this month", color: "text-green-500" },
+  ];
 
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        // TODO: Replace with actual API endpoints
-        // const [ipData, licenseData, reportData] = await Promise.all([
-        //   fetch(`${API_BASE_URL}/analytics/ip/created`).then(r => r.json()),
-        //   fetch(`${API_BASE_URL}/analytics/licenses/sold`).then(r => r.json()),
-        //   fetch(`${API_BASE_URL}/analytics/reports`).then(r => r.json()),
-        // ]);
+  const recentActivity = [
+    { id: 1, action: "License Sold", asset: "Digital Art Collection #42", time: "2 hours ago", status: "completed" },
+    { id: 2, action: "IP Registered", asset: "Music Track - Summer Vibes", time: "5 hours ago", status: "completed" },
+    { id: 3, action: "Violation Detected", asset: "Photo Series Alpha", time: "1 day ago", status: "investigating" },
+    { id: 4, action: "License Issued", asset: "Brand Logo Design", time: "2 days ago", status: "active" },
+  ];
 
-        // For now, show empty state until API is integrated
-        setData({
-          totalScans: 0,
-          safeOutputs: 0,
-          violationsDetected: 0,
-          pendingLicenses: 0,
-          scanActivity: [],
-          violations: [],
-          riskTrend: [],
-        });
-      } catch (error) {
-        console.error('Failed to fetch dashboard data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchDashboardData();
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="space-y-6 animate-fade-in">
-        <div>
-          <h1 className="text-3xl font-display font-bold mb-2">Dashboard</h1>
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    );
-  }
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div>
-        <h1 className="text-3xl font-display font-bold mb-2">Dashboard</h1>
-        <p className="text-muted-foreground">
-          Monitor AI compliance and IP licensing metrics
-        </p>
-      </div>
+    <div className="min-h-screen">
+      <div className="container mx-auto px-6 py-8">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-4xl font-bold mb-2 gradient-text">Dashboard</h1>
+            <p className="text-muted-foreground">Welcome back! Here's your IP portfolio overview</p>
+          </div>
+          <Link to="/ip/register">
+            <Button className="bg-gradient-primary hover:opacity-90 glow-purple">
+              <Plus className="mr-2 h-4 w-4" />
+              Register New IP
+            </Button>
+          </Link>
+        </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <MetricCard
-          title="Total Scans"
-          value={data?.totalScans.toLocaleString() || "0"}
-          icon={FileText}
-          variant="primary"
-        />
-        <MetricCard
-          title="Safe Outputs"
-          value={data?.safeOutputs.toLocaleString() || "0"}
-          icon={ShieldCheck}
-          variant="secondary"
-        />
-        <MetricCard
-          title="Violations Detected"
-          value={data?.violationsDetected.toLocaleString() || "0"}
-          icon={AlertTriangle}
-          variant="accent"
-        />
-        <MetricCard
-          title="Pending Licenses"
-          value={data?.pendingLicenses.toLocaleString() || "0"}
-          icon={Clock}
-        />
-      </div>
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {stats.map((stat, index) => (
+            <Card key={index} className="glass-card p-6 hover:glow-purple transition-smooth">
+              <div className="flex items-start justify-between mb-4">
+                <div className={`h-12 w-12 rounded-xl bg-card flex items-center justify-center ${stat.color}`}>
+                  <stat.icon className="h-6 w-6" />
+                </div>
+                <TrendingUp className="h-4 w-4 text-green-500" />
+              </div>
+              <p className="text-sm text-muted-foreground mb-1">{stat.label}</p>
+              <p className="text-3xl font-bold mb-2">{stat.value}</p>
+              <p className="text-xs text-muted-foreground">{stat.change}</p>
+            </Card>
+          ))}
+        </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card className="border-border">
-          <CardHeader>
-            <CardTitle>Monthly Scan Activity</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={data?.scanActivity || []}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis 
-                  dataKey="month" 
-                  stroke="hsl(var(--muted-foreground))"
-                  fontSize={12}
-                />
-                <YAxis 
-                  stroke="hsl(var(--muted-foreground))"
-                  fontSize={12}
-                />
-                <Tooltip 
-                  contentStyle={{
-                    backgroundColor: "hsl(var(--card))",
-                    border: "1px solid hsl(var(--border))",
-                    borderRadius: "8px",
-                  }}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="scans" 
-                  stroke="hsl(var(--primary))" 
-                  strokeWidth={2}
-                  dot={{ fill: "hsl(var(--primary))", r: 4 }}
-                  activeDot={{ r: 6, className: "glow-primary" }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
+        {/* Quick Actions */}
+        <div className="grid md:grid-cols-3 gap-6 mb-8">
+          <Link to="/ip/register" className="group">
+            <Card className="glass-card p-6 hover:glow-purple transition-smooth cursor-pointer h-full">
+              <FileText className="h-8 w-8 text-primary mb-4 group-hover:scale-110 transition-transform" />
+              <h3 className="text-xl font-bold mb-2">Register IP</h3>
+              <p className="text-sm text-muted-foreground">Mint new IP assets on-chain</p>
+            </Card>
+          </Link>
 
-        <Card className="border-border">
-          <CardHeader>
-            <CardTitle>Violations by Type</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={data?.violations || []}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={100}
-                  paddingAngle={2}
-                  dataKey="value"
-                >
-                  {(data?.violations || []).map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip 
-                  contentStyle={{
-                    backgroundColor: "hsl(var(--card))",
-                    border: "1px solid hsl(var(--border))",
-                    borderRadius: "8px",
-                  }}
-                />
-                <Legend 
-                  verticalAlign="bottom"
-                  height={36}
-                  iconType="circle"
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          </CardContent>
+          <Link to="/licenses" className="group">
+            <Card className="glass-card p-6 hover:glow-cyan transition-smooth cursor-pointer h-full">
+              <Scale className="h-8 w-8 text-accent mb-4 group-hover:scale-110 transition-transform" />
+              <h3 className="text-xl font-bold mb-2">Browse Licenses</h3>
+              <p className="text-sm text-muted-foreground">Discover IP in marketplace</p>
+            </Card>
+          </Link>
+
+          <Link to="/violations" className="group">
+            <Card className="glass-card p-6 hover:glow-purple transition-smooth cursor-pointer h-full">
+              <AlertTriangle className="h-8 w-8 text-primary mb-4 group-hover:scale-110 transition-transform" />
+              <h3 className="text-xl font-bold mb-2">Check Violations</h3>
+              <p className="text-sm text-muted-foreground">Monitor IP protection status</p>
+            </Card>
+          </Link>
+        </div>
+
+        {/* Recent Activity */}
+        <Card className="glass-card">
+          <div className="p-6 border-b border-border">
+            <h2 className="text-2xl font-bold">Recent Activity</h2>
+          </div>
+          <Table>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent border-border">
+                <TableHead>Action</TableHead>
+                <TableHead>Asset</TableHead>
+                <TableHead>Time</TableHead>
+                <TableHead>Status</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {recentActivity.map((activity) => (
+                <TableRow key={activity.id} className="border-border hover:bg-muted/50">
+                  <TableCell className="font-medium">{activity.action}</TableCell>
+                  <TableCell className="text-muted-foreground">{activity.asset}</TableCell>
+                  <TableCell className="text-muted-foreground">{activity.time}</TableCell>
+                  <TableCell>
+                    <Badge 
+                      variant={activity.status === "completed" ? "default" : activity.status === "active" ? "secondary" : "destructive"}
+                      className="capitalize"
+                    >
+                      {activity.status}
+                    </Badge>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </Card>
       </div>
-
-      <Card className="border-border">
-        <CardHeader>
-          <CardTitle>Risk Score Trends</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <AreaChart data={data?.riskTrend || []}>
-              <defs>
-                <linearGradient id="riskGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(var(--accent))" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="hsl(var(--accent))" stopOpacity={0}/>
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis 
-                dataKey="week" 
-                stroke="hsl(var(--muted-foreground))"
-                fontSize={12}
-              />
-              <YAxis 
-                stroke="hsl(var(--muted-foreground))"
-                fontSize={12}
-              />
-              <Tooltip 
-                contentStyle={{
-                  backgroundColor: "hsl(var(--card))",
-                  border: "1px solid hsl(var(--border))",
-                  borderRadius: "8px",
-                }}
-              />
-              <Area 
-                type="monotone" 
-                dataKey="risk" 
-                stroke="hsl(var(--accent))" 
-                strokeWidth={2}
-                fillOpacity={1}
-                fill="url(#riskGradient)"
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
     </div>
   );
 }
