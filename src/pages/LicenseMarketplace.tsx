@@ -139,67 +139,67 @@ export default function LicenseMarketplace() {
             <p className="text-muted-foreground">Creators can publish licenses from the asset detail page.</p>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {listings?.map(({ asset, license }) => (
-              <Card key={license.id} className="glass-card overflow-hidden hover:glow-purple transition-smooth group">
+            <Card key={license.id} className="glass-card overflow-hidden hover:glow-purple transition-smooth group">
                 <div className="aspect-video bg-gradient-primary/10 flex items-center justify-center text-4xl border-b border-border font-semibold">
                   {asset.title.slice(0, 1).toUpperCase()}
-                </div>
-                
-                <div className="p-6 space-y-4">
-                  <div>
+              </div>
+              
+              <div className="p-6 space-y-4">
+                <div>
                     <p className="text-sm text-muted-foreground mb-1">{asset.title}</p>
-                    <h3 className="font-bold text-lg group-hover:text-primary transition-smooth">
+                  <h3 className="font-bold text-lg group-hover:text-primary transition-smooth">
                       {license.termsURI ? "Programmable License" : "Custom License"}
-                    </h3>
-                  </div>
+                  </h3>
+                </div>
 
-                  <div className="flex items-center gap-2 flex-wrap">
+                <div className="flex items-center gap-2 flex-wrap">
                     <Badge variant="default" className="text-xs capitalize">
                       {asset.category || "General"}
-                    </Badge>
-                    <Badge variant="secondary" className="text-xs">
+                  </Badge>
+                  <Badge variant="secondary" className="text-xs">
                       Fee locked
-                    </Badge>
-                    <Badge variant="outline" className="text-xs">
+                  </Badge>
+                  <Badge variant="outline" className="text-xs">
                       Asset #{asset.id}
-                    </Badge>
-                  </div>
+                  </Badge>
+                </div>
 
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
                         <Button variant="ghost" size="sm" className="w-full glass text-xs justify-start" asChild>
                           <a href={license.termsURI} target="_blank" rel="noreferrer">
-                            <FileText className="h-3 w-3 mr-2" />
-                            View Terms
+                        <FileText className="h-3 w-3 mr-2" />
+                        View Terms
                           </a>
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent className="glass-card border-glass-border max-w-xs">
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent className="glass-card border-glass-border max-w-xs">
                         <p className="text-sm">Opens the immutable license terms stored on-chain or IPFS.</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
 
-                  <div className="flex items-center justify-between pt-4 border-t border-border">
-                    <div>
+                <div className="flex items-center justify-between pt-4 border-t border-border">
+                  <div>
                       <p className="text-sm text-muted-foreground">Fee</p>
                       <p className="text-2xl font-bold gradient-text">{formatEther(license.fee)} ETH</p>
-                    </div>
-                    <Button 
-                      className="bg-gradient-accent hover:opacity-90 glow-cyan"
+                  </div>
+                  <Button 
+                    className="bg-gradient-accent hover:opacity-90 glow-cyan"
                       onClick={() => handlePurchase(license.id)}
                       disabled={isPurchasing}
-                    >
-                      <ShoppingCart className="mr-2 h-4 w-4" />
+                  >
+                    <ShoppingCart className="mr-2 h-4 w-4" />
                       {isPurchasing ? "Processing..." : "Purchase"}
-                    </Button>
-                  </div>
+                  </Button>
                 </div>
-              </Card>
-            ))}
-          </div>
+              </div>
+            </Card>
+          ))}
+        </div>
         )}
       </div>
     </div>

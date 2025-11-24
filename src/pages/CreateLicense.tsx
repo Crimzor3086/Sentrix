@@ -186,10 +186,10 @@ export default function CreateLicense() {
                   <div className="space-y-2">
                     <Label htmlFor="price">Price (ETH)</Label>
                     <Input 
-                      id="price"
-                      type="number"
+                      id="price" 
+                      type="number" 
                       step="0.0001"
-                      placeholder="0.00"
+                      placeholder="0.00" 
                       className="glass border-border"
                       value={formState.fee}
                       onChange={(event) => setFormState((prev) => ({ ...prev, fee: event.target.value }))}

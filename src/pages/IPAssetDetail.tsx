@@ -137,10 +137,10 @@ export default function IPAssetDetail() {
               {referenceUrl && (
                 <Button variant="outline" className="w-full glass" asChild>
                   <a href={referenceUrl} target="_blank" rel="noreferrer">
-                    <Award className="mr-2 h-4 w-4" />
+                <Award className="mr-2 h-4 w-4" />
                     View Reference
                   </a>
-                </Button>
+              </Button>
               )}
             </div>
           </Card>
@@ -201,24 +201,24 @@ export default function IPAssetDetail() {
               {licensesLoading ? (
                 <p className="text-sm text-muted-foreground">Loading licenses...</p>
               ) : licenses && licenses.length > 0 ? (
-                <Table>
-                  <TableHeader>
-                    <TableRow className="hover:bg-transparent border-border">
+              <Table>
+                <TableHeader>
+                  <TableRow className="hover:bg-transparent border-border">
                       <TableHead>ID</TableHead>
-                      <TableHead>Status</TableHead>
+                    <TableHead>Status</TableHead>
                       <TableHead>Fee</TableHead>
                       <TableHead>Start</TableHead>
                       <TableHead>End</TableHead>
                       <TableHead>Licensee</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                     {licenses.map((license) => {
                       const badge = licenseBadge(license.status);
                       return (
-                        <TableRow key={license.id} className="border-border">
+                    <TableRow key={license.id} className="border-border">
                           <TableCell className="font-medium">#{license.id}</TableCell>
-                          <TableCell>
+                      <TableCell>
                             <Badge variant={badge.variant}>{badge.label}</Badge>
                           </TableCell>
                           <TableCell>{formatEther(license.fee)} ETH</TableCell>
@@ -232,12 +232,12 @@ export default function IPAssetDetail() {
                             {license.licensee && license.licensee !== "0x0000000000000000000000000000000000000000"
                               ? truncate(license.licensee)
                               : "Open listing"}
-                          </TableCell>
-                        </TableRow>
+                      </TableCell>
+                    </TableRow>
                       );
                     })}
-                  </TableBody>
-                </Table>
+                </TableBody>
+              </Table>
               ) : (
                 <div className="text-center space-y-2">
                   <p className="font-medium">No licenses published yet</p>
@@ -274,7 +274,7 @@ export default function IPAssetDetail() {
                   </a>
                 </div>
                 {referenceUrl && (
-                  <div className="glass p-4 rounded-lg">
+                <div className="glass p-4 rounded-lg">
                     <p className="text-sm text-muted-foreground mb-1">Reference</p>
                     <a
                       href={referenceUrl}
@@ -284,7 +284,7 @@ export default function IPAssetDetail() {
                     >
                       {referenceUrl}
                     </a>
-                  </div>
+                </div>
                 )}
                 <div className="glass p-4 rounded-lg">
                   <p className="text-sm text-muted-foreground mb-1">Chain</p>

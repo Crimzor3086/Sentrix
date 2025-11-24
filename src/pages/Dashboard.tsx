@@ -42,7 +42,7 @@ export default function Dashboard() {
                 ? "Your wallet is connected. As soon as IP assets sync from Story Protocol, you’ll see live metrics here."
                 : "Connect your wallet to enable on-chain analytics for your IP portfolio."}
             </p>
-          </Card>
+            </Card>
         </div>
 
         {/* Quick Actions */}
@@ -82,7 +82,7 @@ export default function Dashboard() {
             <div className="mt-4">
               <Badge variant="secondary" className="uppercase tracking-wide">
                 No events yet
-              </Badge>
+                    </Badge>
             </div>
           </div>
         </Card>
